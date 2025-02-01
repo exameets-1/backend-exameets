@@ -9,8 +9,9 @@ export const sendToken = (user,statusCode, res, message) => {
         ),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
+
     };
     
     res.status(statusCode)
