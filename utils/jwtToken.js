@@ -1,3 +1,4 @@
+
 export const sendToken = (user,statusCode, res, message) => {
     const token = user.getJWTToken();
     
@@ -10,7 +11,6 @@ export const sendToken = (user,statusCode, res, message) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : 'localhost'
     };
     
     res.status(statusCode)
