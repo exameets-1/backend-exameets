@@ -65,7 +65,8 @@ export const getAllAdmissions = catchAsyncErrors(async (req, res, next) => {
             .sort({ [finalSortBy]: finalSortOrder })
             .skip(skip)
             .limit(limitNum)
-            .select('-__v'); // Exclude version key
+            .select('-__v')
+            // Exclude version key
 
         // Get unique categories for filtering
         const categories = await Admission.distinct('category');

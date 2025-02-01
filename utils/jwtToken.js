@@ -8,7 +8,7 @@ export const sendToken = (user,statusCode, res, message) => {
         ),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         path: '/',
         domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined
     };
