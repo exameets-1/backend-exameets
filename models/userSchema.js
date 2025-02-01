@@ -52,16 +52,30 @@ const userSchema = new mongoose.Schema({
         enum: ["user", "admin"],
         default: "user"
     },
+    preferences: {
+        notifications_about: {
+            type: String,
+        },
+        isStudying: {
+            type: Boolean,
+        },
+        educationLevel: {
+            type: String,
+            enum: ["high-school", "undergraduate", "postgraduate", "other"],
+        },
+        preferencesSet: {
+            type: Boolean,
+            default: false
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now
     },
+    resetPasswordOTP: String,
+    resetPasswordOTPExpiry: Date,
     resetPasswordToken: String,
-    resetPasswordExpire: Date,
-    preferences: {
-        type: Object,
-        default: {}
-    }
+    resetPasswordExpire: Date
 });
 
 userSchema.pre("save", async function (next) {
@@ -89,24 +103,16 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
         const isMatch = await bcrypt.compare(enteredPassword, this.password);
         return isMatch;
     } catch (error) {
-        console.error('Password comparison error:', error);
         throw new Error("Failed to verify password");
     }
 };
 
 userSchema.methods.getJWTToken = function () {
-    console.log('Generating JWT token for user:', {
-        userId: this._id,
-        expiresIn: process.env.JWT_EXPIRE || '7d'
-    });
-    
     const token = jwt.sign(
         { _id: this._id },
-        process.env.JWT_SECRET_KEY || 'fallback_secret_key_for_development',
+        process.env.JWT_SECRET_KEY,
         { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
-    
-    console.log('JWT token generated successfully');
     return token;
 };
 

@@ -17,7 +17,6 @@ export const getAllTeams = catchAsyncErrors(async(req, res , next) => {
         }
         const totalTeams = await Team.countDocuments(query);
         const teams = await Team.find(query)
-        .sort({createdAt: -1})
         .skip(skip)
         .limit(limit)
 
@@ -45,5 +44,19 @@ export const getASingleTeam = catchAsyncErrors(async(req, res, next)=>{
     res.status(200).json({
         success :true,
         team,
+    })
+})
+
+export const deleteTeam = catchAsyncErrors(async(req, res, next)=>{
+    const {id} = req.params;
+    const team = await Team.findById(id);
+    if(!team){
+        return next(new ErrorHandler("Team Not Found", 400));
+    }
+
+    await team.deleteOne();
+    res.status(200).json({
+        success : true,
+        message: "Team deleted successfully"
     })
 })

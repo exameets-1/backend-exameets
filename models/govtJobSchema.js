@@ -38,10 +38,6 @@ const govtJobSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    is_featured: {
-        type: Boolean,
-        required: true,
-    },
     valid_until: {
         type: String,
         required: false,
@@ -67,6 +63,10 @@ const govtJobSchema = new mongoose.Schema({
         required: true
     },
     post : {
+        type: String,
+        required: true
+    },
+    notification_about : {
         type: String,
         required: true
     }

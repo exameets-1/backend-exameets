@@ -25,15 +25,16 @@ export const sendPasswordResetOTP = async (req, res) => {
         
         // Save OTP and its expiry in user document
         user.resetPasswordOTP = otp;
-        user.resetPasswordOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+        user.resetPasswordOTPExpiry = Date.now() + 5 * 60 * 1000; // 10 minutes
         await user.save();
 
         // Send email
-        const message = `Your password reset OTP is: ${otp}\nThis OTP is valid for 10 minutes.`;
+        const message = `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`;
         await sendEmail({
             email: user.email,
             subject: "Password Reset OTP",
-            message
+            message,
+            type: 'login'
         });
 
         res.status(200).json({

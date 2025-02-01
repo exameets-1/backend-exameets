@@ -1,5 +1,5 @@
 import express from "express";
-import { getMyProfile, login, logout, register, updatePassword, updateProfile, deleteAccount } from "../controllers/userController.js"
+import { getMyProfile, login, logout, register, updatePassword, updateProfile, deleteAccount, checkEmailExists, checkPhoneExists, getMatchedJobs } from "../controllers/userController.js"
 import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
@@ -10,6 +10,9 @@ router.get("/logout", isAuthenticated, logout);
 router.get("/getuser", isAuthenticated, getMyProfile);
 router.put("/update/profile", isAuthenticated, updateProfile);
 router.put("/update/password", isAuthenticated, updatePassword);
+router.get("/matchedjobs", isAuthenticated, getMatchedJobs);
 router.delete("/delete", isAuthenticated, deleteAccount);
+router.post("/check-email", checkEmailExists);
+router.post("/check-phone", checkPhoneExists);
 
 export default router;

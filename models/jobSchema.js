@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const jobSchema = new mongoose.Schema({
-
+    category: {
+        type: String,
+        required: true,
+        enum: ['IT', 'NON-IT']
+    },
     job_type: {
         type: String,
         required: true,
@@ -54,14 +58,20 @@ const jobSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
-    vacancy : { 
+    vacancy: { 
         type: String,
         required: true,
     },
-    qualification : {
+    qualification: {
         type: String,
         required: true,
     },
-})
+    notification_about : {
+        type : String,
+        required : true
+    }
+}, {
+    timestamps: true
+});
 
 export const Job = mongoose.model("Job", jobSchema);

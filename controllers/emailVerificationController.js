@@ -29,12 +29,13 @@ export const sendEmailOTP = async (req, res) => {
         });
 
         // Send OTP via email
-        const message = `Your OTP for email verification is: ${otp}\n\nThis OTP will expire in 5 minutes.`;
+        const message = `Your OTP for email verification is: ${otp}. This OTP will expire in 5 minutes.`;
         
         await sendEmail({
             email,
             subject: "Email Verification OTP",
-            message
+            message,
+            type: 'signin'
         });
 
         res.status(200).json({

@@ -2,10 +2,10 @@ import { User } from "../models/userSchema.js";
 
 export const updateUserPreferences = async (req, res) => {
     try {
-        const { examNotifications, isStudying, educationLevel } = req.body;
+        const { notifications_about, isStudying, educationLevel } = req.body;
 
         // Validate input
-        if (!examNotifications || isStudying === undefined || !educationLevel) {
+        if (!notifications_about || isStudying === undefined || !educationLevel) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide all preference fields"
@@ -23,7 +23,7 @@ export const updateUserPreferences = async (req, res) => {
         }
 
         user.preferences = {
-            examNotifications,
+            notifications_about,
             isStudying,
             educationLevel,
             preferencesSet: true

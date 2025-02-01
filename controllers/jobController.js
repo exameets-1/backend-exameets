@@ -74,3 +74,147 @@ export const getLatestJobs = catchAsyncErrors(async (req, res, next) => {
     jobs
   });
 });
+
+export const deleteJob = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const job = await Job.findById(id);
+  
+  if (!job) {
+    return next(new ErrorHandler("Job not found", 404));
+  }
+
+  await job.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Job deleted successfully",
+  });
+});
+
+export const updateJob = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const jobId = req.params.id;
+    const updates = req.body;
+
+    // Find the job
+    const job = await Job.findById(jobId);
+
+    if (!job) {
+      return next(new ErrorHandler("Job not found", 404));
+    }
+
+    // Remove any undefined or null values from updates
+    Object.keys(updates).forEach(key => {
+      if (updates[key] === undefined || updates[key] === null) {
+        delete updates[key];
+      }
+    });
+
+    // Update the job
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      { $set: updates },
+      { new: true, runValidators: false }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      job: updatedJob
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+export const getAllITJobs = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const jobs = await Job.find({ category: 'IT' });
+    res.status(200).json({
+      success: true,
+      jobs
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+export const getAllNonITJobs = catchAsyncErrors(async (req, res, next) => {
+  try {
+    const jobs = await Job.find({ category: { $ne: 'IT' } });
+    res.status(200).json({
+      success: true,
+      jobs
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+export const createJob = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const {
+            category,
+            job_type,
+            organization,
+            location,
+            role,
+            experience_required,
+            skills_required,
+            post_date,
+            eligibility_criteria,
+            application_link,
+            description,
+            salary_range,
+            last_date,
+            valid_until,
+            vacancy,
+            qualification
+        } = req.body;
+
+        // Validate required fields
+        const requiredFields = [
+            'category',
+            'job_type',
+            'organization',
+            'location',
+            'role',
+            'experience_required',
+            'skills_required',
+            'post_date',
+            'eligibility_criteria',
+            'application_link',
+            'description',
+            'salary_range',
+            'last_date',
+            'valid_until',
+            'vacancy',
+            'qualification'
+        ];
+
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        if (missingFields.length > 0) {
+            return next(new ErrorHandler(`Missing required fields: ${missingFields.join(', ')}`, 400));
+        }
+
+        // Convert date strings to Date objects and set notification_about based on category
+        const formattedData = {
+            ...req.body,
+            post_date: new Date(post_date),
+            last_date: new Date(last_date),
+            valid_until: new Date(valid_until),
+            notification_about: category.toLowerCase() === 'it' ? 'techjobs' : 'techjobs'  // both IT and NON-IT are techjobs
+        };
+
+        const newJob = await Job.create(formattedData);
+        
+        res.status(201).json({
+            success: true,
+            job: newJob,
+            message: "Job created successfully"
+        });
+    } catch (error) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});

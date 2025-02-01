@@ -1,28 +1,32 @@
 import express from "express";
+import { isAuthenticated } from "../middlewares/auth.js";
 import {
     getAllAdmissions,
     getSingleAdmission,
     getLatestAdmissions,
-    /*createAdmission,
+    deleteAdmission,
     updateAdmission,
-    deleteAdmission,*/
+    createAdmission
 } from "../controllers/admissionController.js";
 
 const router = express.Router();
 
-// Basic CRUD routes
-router.get("/getall", getAllAdmissions);
-router.get("/get/:id", getSingleAdmission);
-router.get("/latest", getLatestAdmissions);
-/*
-router.route("/create").post(createAdmission);
-router.route("/update/:id").put(updateAdmission);
-router.route("/delete/:id").delete(deleteAdmission);
+// Create new admission
+router.post("/create", isAuthenticated, createAdmission);
 
-// Additional utility routes
-router.route("/institution/:institution").get(getAdmissionsByInstitution);
-router.route("/upcoming").get(getUpcomingDeadlines);
-router.route("/location/:state").get(getAdmissionsByLocation);
-*/
+// Get all admissions
+router.route("/getall").get(getAllAdmissions);
+
+// Get single admission
+router.route("/get/:id").get(getSingleAdmission);
+
+// Get latest admissions
+router.route("/latest").get(getLatestAdmissions);
+
+// Delete admission
+router.delete("/:id", isAuthenticated, deleteAdmission);
+
+// Update admission
+router.put("/update/:id", isAuthenticated, updateAdmission);
 
 export default router;

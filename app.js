@@ -1,5 +1,5 @@
 import {config} from 'dotenv' 
-config({path: "./config/config.env"})
+config({path: "./config/config.env"});
 import express from 'express';
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
@@ -14,12 +14,12 @@ import examRouter from './routes/examRouter.js'
 import admissionRouter from "./routes/admissionRouter.js";
 import teamRouter from "./routes/teamRouter.js";
 import scholarshipRouter from "./routes/scholarshipRouter.js";
-import whatsNewRouter from './routes/whatsNewRouter.js'
 import emailVerificationRoutes from './routes/emailVerification.js'
 import forgotPasswordRouter from './routes/forgotPasswordRoute.js'
 import resultRouter from './routes/resultRouter.js'
 import admitCardRouter from './routes/admitCardRouter.js'
 import preferenceRouter from './routes/preferenceRouter.js'
+import searchRoutes from './routes/searchRoutes.js';
 //import { newsLetterCron } from './automation/newsLetterCron.js';
 const app = express()
 
@@ -43,13 +43,13 @@ app.use("/api/v1/previousyear", previousYearRouter);
 app.use("/api/v1/exam", examRouter);
 app.use("/api/v1/admission", admissionRouter);
 app.use("/api/v1/team", teamRouter);
-app.use("/api/v1/whatsnew", whatsNewRouter);
 app.use("/api/v1/scholarship", scholarshipRouter);
 app.use("/api/v1/email", emailVerificationRoutes);
 app.use("/api/v1/password", forgotPasswordRouter);
 app.use('/api/v1/result', resultRouter);
 app.use('/api/v1/admitcard', admitCardRouter)
 app.use('/api/v1/preferences', preferenceRouter)   
+app.use('/api/v1/search', searchRoutes);
 // Add these routes with your existing rout
 //newsLetterCron()
 connection();

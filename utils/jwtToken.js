@@ -10,13 +10,8 @@ export const sendToken = (user,statusCode, res, message) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
+        domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined
     };
-    
-    console.log('Setting auth token cookie with options:', {
-        ...options,
-        token: token ? 'Token present' : 'No token'
-    });
     
     res.status(statusCode)
        .cookie("token", token, options)

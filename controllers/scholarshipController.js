@@ -4,9 +4,38 @@ import {catchAsyncErrors} from "../middlewares/catchAsyncErrors.js";
 
 // Create new scholarship
 export const createScholarship = catchAsyncErrors(async (req, res, next) => {
-    const scholarship = await Scholarship.create(req.body);
+    const {
+        title,
+        organization,
+        description,
+        eligibility_criteria,
+        amount,
+        application_link,
+        start_date,
+        last_date,
+        category,
+        qualification,
+        is_featured
+    } = req.body;
+
+    const scholarship = await Scholarship.create({
+        title,
+        organization,
+        description,
+        eligibility_criteria,
+        amount,
+        application_link,
+        start_date,
+        last_date,
+        category,
+        qualification,
+        is_featured,
+        post_date: new Date()
+    });
+
     res.status(201).json({
         success: true,
+        message: "Scholarship created successfully",
         scholarship
     });
 });
@@ -34,7 +63,7 @@ export const getAllScholarships = catchAsyncErrors(async (req, res, next) => {
     const totalPages = Math.ceil(totalScholarships / limit);
 
     const scholarships = await Scholarship.find(searchQuery)
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 })
         .skip(skip)
         .limit(limit);
 

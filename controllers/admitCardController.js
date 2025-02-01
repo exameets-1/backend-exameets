@@ -18,6 +18,7 @@ export const getAllAdmitCards = catchAsyncErrors(async (req, res, next) => {
     const skip = (page - 1) * limit;
     const totalAdmitCards = await AdmitCard.countDocuments(query);
     const admitCards = await AdmitCard.find(query)
+    .sort({_id : -1})
     .skip(skip)
     .limit(parseInt(limit));
 
@@ -60,34 +61,64 @@ export const getLatestAdmitCards = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Create new admit card
-export const createAdmitCard = catchAsyncErrors(async (req, res) => {
-    const admitCard = await AdmitCard.create(req.body);
+export const createAdmitCard = catchAsyncErrors(async (req, res, next) => {
+    const {
+        title,
+        description,
+        exam_date,
+        registration_start_date,
+        registration_end_date,
+        eligibility_criteria,
+        download_link,
+        organization
+    } = req.body;
+
+    if (!title || !description || !exam_date || !registration_start_date || 
+        !registration_end_date || !eligibility_criteria || !download_link || !organization) {
+        return res.status(400).json({
+            success: false,
+            message: "Please fill all fields"
+        });
+    }
+
+    const admitCard = await AdmitCard.create({
+        title,
+        description,
+        exam_date,
+        registration_start_date,
+        registration_end_date,
+        eligibility_criteria,
+        download_link,
+        organization
+    });
 
     res.status(201).json({
         success: true,
+        message: "Admit Card created successfully",
         admitCard
     });
 });
 
 // Update admit card
-export const updateAdmitCard = catchAsyncErrors(async (req, res) => {
-    let admitCard = await AdmitCard.findById(req.params.id);
+export const updateAdmitCard = catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params;
+    const updates = req.body;
 
+    const admitCard = await AdmitCard.findById(id);
     if (!admitCard) {
-        return res.status(404).json({
-            success: false,
-            message: "Admit card not found"
-        });
+        return next(new ErrorHandler("Admit Card not found", 404));
     }
 
-    admitCard = await AdmitCard.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-        runValidators: true
-    });
+    const updatedAdmitCard = await AdmitCard.findByIdAndUpdate(
+        id,
+        { $set: updates },
+        { new: true, runValidators: true }
+    );
 
     res.status(200).json({
         success: true,
-        admitCard
+        admitCard: updatedAdmitCard,
+        message: "Admit Card updated successfully"
     });
 });
 

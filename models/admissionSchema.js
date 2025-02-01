@@ -3,135 +3,71 @@ import mongoose from "mongoose";
 const admissionSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true,
+        required: [true, "Please enter admission title"],
+        trim: true
+    },
+    institute: {
+        type: String,
+        required: [true, "Please enter institute name"],
+        trim: true
     },
     description: {
         type: String,
-        required: true,
+        required: [true, "Please enter admission description"]
     },
-    institution: {
+    eligibility_criteria: {
         type: String,
-        required: true,
+        required: [true, "Please enter eligibility criteria"]
     },
-    program: {
+    course: {
         type: String,
-        required: true,
+        required: [true, "Please enter course name"]
     },
-    degree: {
+    application_link: {
         type: String,
-        required: true,
+        required: [true, "Please enter application link"]
     },
-    applicationDeadline: {
+    start_date: {
         type: Date,
-        required: true,
+        required: [true, "Please enter start date"]
     },
-    startDate: {
+    last_date: {
         type: Date,
-        required: true,
-    },
-    duration: {
-        type: String,
-        required: true,
-    },
-    eligibility: {
-        type: String,
-        required: true,
-    },
-    applicationFee: {
-        domestic: {
-            type: Number,
-            required: true,
-        },
-        international: {
-            type: Number,
-            required: true,
-        }
-    },
-    tuitionFee: {
-        domestic: {
-            type: Number,
-            required: true,
-        },
-        international: {
-            type: Number,
-            required: true,
-        }
-    },
-    seats: {
-        total: {
-            type: Number,
-            required: true,
-        },
-        reserved: {
-            type: Number,
-            required: true,
-        }
-    },
-    location: {
-        city: {
-            type: String,
-            required: true,
-        },
-        state: {
-            type: String,
-            required: true,
-        },
-        country: {
-            type: String,
-            required: true,
-        }
-    },
-    requirements: [{
-        type: String,
-        required: true,
-    }],
-    documents: [{
-        type: String,
-        required: true,
-    }],
-    applicationProcess: {
-        type: String,
-        required: true,
-    },
-    applicationLink: {
-        type: String,
-        required: true,
-    },
-    brochureLink: {
-        type: String,
-        required: false,
+        required: [true, "Please enter last date to apply"]
     },
     category: {
         type: String,
-        required: true,
+        required: [true, "Please enter admission category"],
+        enum: [
+            'Engineering',
+            'Medical',
+            'Arts',
+            'Science',
+            'Commerce',
+            'Management',
+            'Law',
+            'Design',
+            'Other'
+        ]
     },
-    scholarships: [{
-        name: {
-            type: String,
-            required: true,
-        },
-        amount: {
-            type: Number,
-            required: true,
-        },
-        criteria: {
-            type: String,
-            required: true,
-        }
-    }],
-    status: {
+    fees: {
         type: String,
-        enum: ['Open', 'Closing Soon', 'Closed'],
-        default: 'Open'
+        required: [true, "Please enter course fees"]
+    },
+    location: {
+        type: String,
+        required: [true, "Please enter institute location"]
+    },
+    is_featured: {
+        type: Boolean,
+        default: false
     },
     post_date: {
         type: Date,
-        default: Date.now,
-    },
-    lastUpdated: {
-        type: Date,
-        default: Date.now,
+        default: Date.now
     }
+}, {
+    timestamps: true
 });
 
 export const Admission = mongoose.model("Admission", admissionSchema);

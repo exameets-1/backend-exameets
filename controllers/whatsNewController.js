@@ -70,3 +70,17 @@ export const getWhatsNew = catchAsyncErrors(async (req, res, next) => {
         whatsNew: populatedItems
     });
 });
+
+// Delete a What's New item
+export const deleteWhatsNewItem = catchAsyncErrors(async (req, res, next) => {
+    const { id } = req.params;
+    const whatsNew = await WhatsNew.findById(id);
+    if(!whatsNew){
+        return next(new ErrorHandler("What's New not found", 404));
+    }
+    await whatsNew.deleteOne();
+    res.status(200).json({
+        success: true,
+        message: "What's New deleted successfully"
+    });
+});

@@ -3,83 +3,67 @@ import mongoose from "mongoose";
 const scholarshipSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true,
-    },
-    academicYear:{
-        type: String,
-        required: true,
-    },
-    qualification : {
-        type: String,
-        required: true,
-    },
-    registrationStartDate: {
-        type: String,
-        required: true,
-    },
-    registrationCloseDate: {
-        type: String,
-        required: true,
-    },
-    caste: {
-        type: String,
-        required: true,
-    },
-    financialStatus: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: true,
+        required: [true, "Please enter scholarship title"],
+        trim: true
     },
     organization: {
         type: String,
-        required: true,
+        required: [true, "Please enter organization name"],
+        trim: true
+    },
+    description: {
+        type: String,
+        required: [true, "Please enter scholarship description"]
+    },
+    eligibility_criteria: {
+        type: String,
+        required: [true, "Please enter eligibility criteria"]
     },
     amount: {
         type: String,
-        required: true,
+        required: [true, "Please enter scholarship amount"]
     },
-    eligibility: {
+    application_link: {
         type: String,
-        required: true,
+        required: [true, "Please enter application link"]
     },
-    deadline: {
+    start_date: {
         type: Date,
-        required: true,
+        required: [true, "Please enter start date"]
+    },
+    last_date: {
+        type: Date,
+        required: [true, "Please enter last date to apply"]
     },
     category: {
         type: String,
-        enum: ['Merit-based', 'Need-based', 'Research', 'Sports', 'Cultural', 'International', 'Other'],
-        required: true,
+        required: [true, "Please enter scholarship category"],
+        enum: [
+            'Merit-based',
+            'Need-based',
+            'Research',
+            'Sports',
+            'Cultural',
+            'International',
+            'Government',
+            'Private',
+            'Other'
+        ]
     },
-    educationLevel: {
+    qualification: {
         type: String,
-        enum: ['High School', 'Undergraduate', 'Graduate', 'Doctorate', 'All Levels'],
-        required: true,
+        required: [true, "Please enter required qualification"]
     },
-    applicationLink: {
-        type: String,
-        required: true,
+    is_featured: {
+        type: Boolean,
+        default: false
     },
-    requirements: [{
-        type: String,
-        required: true,
-    }],
-    benefits: [{
-        type: String,
-        required: true,
-    }],
-    country: {
-        type: String,
-        required: true,
-    },
-    createdAt: {
+    post_date: {
         type: Date,
-        default: Date.now,
-    },
-
+        default: Date.now
+    }
+}, {
+    timestamps: true
 });
 
 export const Scholarship = mongoose.model("Scholarship", scholarshipSchema);

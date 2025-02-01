@@ -2,6 +2,8 @@ import { User } from "../models/userSchema.js";
 import ErrorHandler from "../middlewares/error.js";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import { sendToken } from "../utils/jwtToken.js";
+import { GovtJob } from "../models/govtJobSchema.js";
+import { Job } from "../models/jobSchema.js";
 
 // Removing all bookmark, roadmap and quiz related functions and keeping only the essential user functions
 export const register = catchAsyncErrors(async (req, res, next) => {
@@ -191,4 +193,60 @@ export const deleteAccount = catchAsyncErrors(async (req, res, next) => {
             success: true,
             message: "Account Deleted Successfully",
         });
+});
+
+export const checkEmailExists = catchAsyncErrors(async (req, res) => {
+    const { email } = req.body;
+    const existingUser = await User.findOne({ email });
+    
+    res.status(200).json({
+        success: true,
+        exists: !!existingUser
+    });
+});
+
+export const checkPhoneExists = catchAsyncErrors(async (req, res) => {
+    const { phone } = req.body;
+    const existingUser = await User.findOne({ phone });
+    
+    res.status(200).json({
+        success: true,
+        exists: !!existingUser
+    });
+});
+
+export const getMatchedJobs = catchAsyncErrors(async (req, res, next) => {
+    // Check if user exists and has preferences set
+    const user = await User.findById(req.user._id);
+    if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+    }
+
+    if (!user.preferences || !user.preferences.notifications_about) {
+        return next(new ErrorHandler("Notification preferences not set", 400));
+    }
+
+    const notificationPreference = user.preferences.notifications_about;
+
+    if(notificationPreference === "IT"){
+        const jobs = await Job.find({ category: "IT" });
+        res.status(200).json({
+            success: true,
+            jobs
+        })
+    } else if(notificationPreference === "NON-IT"){
+        const jobs = await Job.find({ category: { $ne: "IT" } });
+        res.status(200).json({
+            success: true,
+            jobs
+        })
+    } else if(notificationPreference !== "admissions" && notificationPreference !== "scholarships" && notificationPreference !== "internships" && notificationPreference !== "results") {
+        const jobs = await GovtJob.find({
+            notification_about : notificationPreference.toUpperCase()
+        });
+        res.status(200).json({
+            success: true,
+            jobs,
+        })
+    }
 });
