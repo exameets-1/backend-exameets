@@ -8,9 +8,9 @@ export const sendToken = (user,statusCode, res, message) => {
         ),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : undefined
+        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : 'localhost'
     };
     
     res.status(statusCode)
