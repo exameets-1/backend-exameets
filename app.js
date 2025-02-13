@@ -26,48 +26,41 @@ const app = express()
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });
 });
-// CORS configuration
-const corsOptions = {
-  origin: 'https://frontend-exameets.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 204
-};
+
 
 // Apply CORS to all routes
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: [process.env.FRONTEND_URL],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 // Handle preflight requests
-app.options('*', cors(corsOptions));
 
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-app.use(cookieParser());
 
-// Apply CORS specifically to API routes
-const apiRouter = express.Router();
-apiRouter.use(cors(corsOptions));
 
 // Mount all API routes
-apiRouter.use("/user", userRouter);
-apiRouter.use("/job", jobRouter);
-apiRouter.use("/govtjob", govtJobRouter);
-apiRouter.use("/internship", internshipRouter);
-apiRouter.use("/previousyear", previousYearRouter);
-apiRouter.use("/exam", examRouter);
-apiRouter.use("/admission", admissionRouter);
-apiRouter.use("/team", teamRouter);
-apiRouter.use("/scholarship", scholarshipRouter);
-apiRouter.use("/email", emailVerificationRoutes);
-apiRouter.use("/forgotpassword", forgotPasswordRouter);
-apiRouter.use("/result", resultRouter);
-apiRouter.use("/admitcard", admitCardRouter);
-apiRouter.use("/preference", preferenceRouter);
-apiRouter.use("/search", searchRoutes);
+app.use("/user", userRouter);
+app.use("/job", jobRouter);
+app.use("/govtjob", govtJobRouter);
+app.use("/internship", internshipRouter);
+app.use("/previousyear", previousYearRouter);
+app.use("/exam", examRouter);
+app.use("/admission", admissionRouter);
+app.use("/team", teamRouter);
+app.use("/scholarship", scholarshipRouter);
+app.use("/email", emailVerificationRoutes);
+app.use("/forgotpassword", forgotPasswordRouter);
+app.use("/result", resultRouter);
+app.use("/admitcard", admitCardRouter);
+app.use("/preference", preferenceRouter);
+app.use("/search", searchRoutes);
 
 // Mount the API router under /api/v1
-app.use("/api/v1", apiRouter);
 
 connection();
 app.use(errorMiddleware)
