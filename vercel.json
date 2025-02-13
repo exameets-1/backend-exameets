@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
       {
-        "src": "app.js",
+        "src": "server.js",
         "use": "@vercel/node"
       }
     ],
@@ -16,7 +16,7 @@
           },
           {
             "key": "Access-Control-Allow-Methods",
-            "value": "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            "value": "GET, POST, PUT, DELETE"
           },
           {
             "key": "Access-Control-Allow-Headers",
@@ -29,10 +29,10 @@
         ]
       }
     ],
-    "routes": [
+    "rewrites": [
       {
-        "src": "/(.*)",
-        "dest": "app.js"
+        "source": "/(.*)",
+        "destination": "server.js"
       }
     ]
   }
