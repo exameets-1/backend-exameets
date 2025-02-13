@@ -22,7 +22,10 @@ import preferenceRouter from './routes/preferenceRouter.js'
 import searchRoutes from './routes/searchRoutes.js';
 //import { newsLetterCron } from './automation/newsLetterCron.js';
 const app = express()
-
+// In your app.js, add this before your other routes
+app.get("/", (req, res) => {
+  res.json({ message: "API is running" });
+});
 // CORS configuration
 const corsOptions = {
   origin: 'https://frontend-exameets.vercel.app',
