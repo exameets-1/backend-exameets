@@ -24,7 +24,7 @@ import searchRoutes from './routes/searchRoutes.js';
 const app = express()
 // In your app.js, add this before your other routes
 app.get("/", (req, res) => {
-  res.json({ message: "API is running" });
+  res.json({ message: "Backend is running" });
 });
 
 
