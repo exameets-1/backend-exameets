@@ -26,13 +26,15 @@ const app = express()
 
 // CORS configuration
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,
-  ],
+  origin: ['https://frontend-exameets.vercel.app', 'http://localhost:3000'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie'],
 }));
+
+// Add a pre-flight route handler
+app.options('*', cors());
 
 app.use(cookieParser());
 app.use(express.json());
