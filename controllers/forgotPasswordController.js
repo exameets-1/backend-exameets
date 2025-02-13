@@ -1,6 +1,6 @@
 import { User } from "../models/userSchema.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import crypto from "crypto";
+
 
 // Generate OTP
 const generateOTP = () => {
