@@ -23,48 +23,49 @@ import searchRoutes from './routes/searchRoutes.js';
 //import { newsLetterCron } from './automation/newsLetterCron.js';
 const app = express()
 
-
 // CORS configuration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://frontend-exameets.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-
-app.use(cors({
+const corsOptions = {
   origin: 'https://frontend-exameets.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-}));
+  optionsSuccessStatus: 204
+};
 
-app.use(cookieParser());
+// Apply CORS to all routes
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
+app.use(cookieParser());
 
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/job", jobRouter);
+// Apply CORS specifically to API routes
+const apiRouter = express.Router();
+apiRouter.use(cors(corsOptions));
 
-app.use("/api/v1/govtjob", govtJobRouter);
-app.use("/api/v1/internship", internshipRouter);
-app.use("/api/v1/previousyear", previousYearRouter);
-app.use("/api/v1/exam", examRouter);
-app.use("/api/v1/admission", admissionRouter);
-app.use("/api/v1/team", teamRouter);
-app.use("/api/v1/scholarship", scholarshipRouter);
-app.use("/api/v1/email", emailVerificationRoutes);
-app.use("/api/v1/password", forgotPasswordRouter);
-app.use('/api/v1/result', resultRouter);
-app.use('/api/v1/admitcard', admitCardRouter)
-app.use('/api/v1/preferences', preferenceRouter)   
-app.use('/api/v1/search', searchRoutes);
+// Mount all API routes
+apiRouter.use("/user", userRouter);
+apiRouter.use("/job", jobRouter);
+apiRouter.use("/govtjob", govtJobRouter);
+apiRouter.use("/internship", internshipRouter);
+apiRouter.use("/previousyear", previousYearRouter);
+apiRouter.use("/exam", examRouter);
+apiRouter.use("/admission", admissionRouter);
+apiRouter.use("/team", teamRouter);
+apiRouter.use("/scholarship", scholarshipRouter);
+apiRouter.use("/email", emailVerificationRoutes);
+apiRouter.use("/forgotpassword", forgotPasswordRouter);
+apiRouter.use("/result", resultRouter);
+apiRouter.use("/admitcard", admitCardRouter);
+apiRouter.use("/preference", preferenceRouter);
+apiRouter.use("/search", searchRoutes);
 
-//newsLetterCron()
+// Mount the API router under /api/v1
+app.use("/api/v1", apiRouter);
+
 connection();
 app.use(errorMiddleware)
 export default app;
