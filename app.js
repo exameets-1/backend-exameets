@@ -44,21 +44,21 @@ app.use(express.urlencoded({extended:true}));
 
 
 // Mount all API routes
-app.use("/user", userRouter);
-app.use("/job", jobRouter);
-app.use("/govtjob", govtJobRouter);
-app.use("/internship", internshipRouter);
-app.use("/previousyear", previousYearRouter);
-app.use("/exam", examRouter);
-app.use("/admission", admissionRouter);
-app.use("/team", teamRouter);
-app.use("/scholarship", scholarshipRouter);
-app.use("/email", emailVerificationRoutes);
-app.use("/forgotpassword", forgotPasswordRouter);
-app.use("/result", resultRouter);
-app.use("/admitcard", admitCardRouter);
-app.use("/preference", preferenceRouter);
-app.use("/search", searchRoutes);
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/job", jobRouter);
+app.use("/api/v1/govtjob", govtJobRouter);
+app.use("/api/v1/internship", internshipRouter);
+app.use("/api/v1/previousyear", previousYearRouter);
+app.use("/api/v1/exam", examRouter);
+app.use("/api/v1/admission", admissionRouter);
+app.use("/api/v1/team", teamRouter);
+app.use("/api/v1/scholarship", scholarshipRouter);
+app.use("/api/v1/email", emailVerificationRoutes);
+app.use("/api/v1/forgotpassword", forgotPasswordRouter);
+app.use("/api/v1/result", resultRouter);
+app.use("/api/v1/admitcard", admitCardRouter);
+app.use("/api/v1/preference", preferenceRouter);
+app.use("/api/v1/search", searchRoutes);
 
 // Mount the API router under /api/v1
 
