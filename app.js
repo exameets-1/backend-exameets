@@ -10,7 +10,6 @@ import jobRouter from "./routes/jobRouter.js"
 import govtJobRouter from "./routes/govtJobRouter.js";
 import internshipRouter from './routes/internshipRouter.js'
 import previousYearRouter from "./routes/previousYearRouter.js"
-import examRouter from './routes/examRouter.js'
 import admissionRouter from "./routes/admissionRouter.js";
 import teamRouter from "./routes/teamRouter.js";
 import scholarshipRouter from "./routes/scholarshipRouter.js";
@@ -49,7 +48,6 @@ app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/govtjob", govtJobRouter);
 app.use("/api/v1/internship", internshipRouter);
 app.use("/api/v1/previousyear", previousYearRouter);
-app.use("/api/v1/exam", examRouter);
 app.use("/api/v1/admission", admissionRouter);
 app.use("/api/v1/team", teamRouter);
 app.use("/api/v1/scholarship", scholarshipRouter);
