@@ -28,11 +28,11 @@ const admissionSchema = new mongoose.Schema({
         required: [true, "Please enter application link"]
     },
     start_date: {
-        type: Date,
+        type: String,
         required: [true, "Please enter start date"]
     },
     last_date: {
-        type: Date,
+        type: String,
         required: [true, "Please enter last date to apply"]
     },
     category: {
@@ -63,6 +63,10 @@ const admissionSchema = new mongoose.Schema({
         default: false
     },
     post_date: {
+        type: Date,
+        default: Date.now
+    },
+    createdAt: {
         type: Date,
         default: Date.now
     }

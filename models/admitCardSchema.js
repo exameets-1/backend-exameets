@@ -32,6 +32,10 @@ const admitCardSchema = new mongoose.Schema({
     organization : {
         type: String,
         required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 

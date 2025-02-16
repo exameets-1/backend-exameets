@@ -51,11 +51,11 @@ const jobSchema = new mongoose.Schema({
         required: true,
     },
     last_date: {
-        type: Date,
+        type: String,
         required: true,
     },
     valid_until: {
-        type: Date,
+        type: String,
         required: true,
     },
     vacancy: { 
@@ -69,6 +69,10 @@ const jobSchema = new mongoose.Schema({
     notification_about : {
         type : String,
         required : true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

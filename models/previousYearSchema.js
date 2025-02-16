@@ -57,6 +57,10 @@ const previousYearSchema = new mongoose.Schema({
     post_date: {
         type: Date,
         default: Date.now
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 

@@ -18,7 +18,7 @@ export const getAllAdmitCards = catchAsyncErrors(async (req, res, next) => {
     const skip = (page - 1) * limit;
     const totalAdmitCards = await AdmitCard.countDocuments(query);
     const admitCards = await AdmitCard.find(query)
-    .sort({_id : -1})
+    .sort({createdAt : -1})
     .skip(skip)
     .limit(parseInt(limit));
 
@@ -51,7 +51,7 @@ export const getSingleAdmitCard = catchAsyncErrors(async (req, res, next) => {
 // Get latest admit cards
 export const getLatestAdmitCards = catchAsyncErrors(async (req, res, next) => {
   const admitCards = await AdmitCard.find()
-    .sort({ _id: -1 })
+    .sort({ createdAt: -1 })
     .limit(5);
 
   res.status(200).json({

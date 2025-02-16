@@ -69,6 +69,11 @@ const govtJobSchema = new mongoose.Schema({
     notification_about : {
         type: String,
         required: true
+    },
+    
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 
