@@ -41,6 +41,23 @@ const scholarshipSchema = new mongoose.Schema({
     },
     qualification: {
         type: String,
+        enum : [
+            'Class 8',
+            'Class 9',
+            'Class 10',
+            'Class 11',
+            'Class 12',
+            'Graduation',
+            'Post Graduation',
+            'Post Graduation Diploma',
+            'Phd',
+            'ITI',
+            'Polytechnic/Diploma',
+            'Post Doctoral',
+            'Vocational Course',
+            'Coaching classes',
+            'Other'
+        ]
     },
     is_featured: {
         type: Boolean,

@@ -52,7 +52,7 @@ export const getAllScholarships = catchAsyncErrors(async (req, res, next) => {
     const skip = (page - 1) * limit;
     const searchKeyword = req.query.searchKeyword || "";
     const category = req.query.category || "All";
-    const amount = req.query.amount || "All";
+    const qualification = req.query.qualification || "All";
 
     const searchQuery = {};
 
@@ -72,16 +72,10 @@ export const getAllScholarships = catchAsyncErrors(async (req, res, next) => {
         searchQuery.category = category;
     }
 
-    // Add amount filter
-    if (amount !== "All") {
-        if (amount === "below50k") {
-            searchQuery.amount = { $lt: 50000 };
-        } else if (amount === "50kTo1L") {
-            searchQuery.amount = { $gte: 50000, $lte: 100000 };
-        } else if (amount === "above1L") {
-            searchQuery.amount = { $gt: 100000 };
-        }
-    } 
+    // Add qualification filter
+    if (qualification !== "All") {
+        searchQuery.qualification = qualification;
+    }
 
     const totalScholarships = await Scholarship.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalScholarships / limit);
