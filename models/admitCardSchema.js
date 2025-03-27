@@ -1,41 +1,71 @@
 import mongoose from "mongoose"
 
 const admitCardSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
-    },
-    exam_date : {
-        type: String,
-        required: true
-    },
-    registration_start_date: {
-        type: String,
-        required: true
-    },
-    registration_end_date: {
-        type: String,
-        required: true
-    },
-    eligibility_criteria: {
-        type: String,
-        required: true
-    },
-    download_link: {
-        type: String,
-        required: true
+    title : {
+        type : String
     },
     organization : {
-        type: String,
-        required: true
+        type : String
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    advertisementNumber : {
+        type : String
+    },
+    importantDates : [{
+        event : {
+            type : String
+        },
+        date : {
+            type : String
+        }
+    }],
+    examDetails : [{
+        examDate : {
+            type : String
+        },
+        shiftTimings : {
+            type : String
+        },
+        reportingTime : {
+            type : String
+        }
+    }],
+    vacancies : {
+        type : String
+    },
+    downloadSteps : [{
+        type : String
+    }],
+    importantLinks : [{
+        linkType : {
+            type : String
+        },
+        link : {
+            type : String
+        }
+    }],
+    instructions : [{
+        type : String
+    }],
+    officialWebsite : {
+        type : String
+    },
+    slug : {
+        type : String
+    },
+    keywords: {
+        type: [String],
+        trim: true
+    },
+    searchDescription : {
+        type : String,
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false,
+    },
+    createdAt : {
+        type : Date,
+        default : Date.now
     }
 })
 

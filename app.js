@@ -47,7 +47,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/job", jobRouter);
 app.use("/api/v1/govtjob", govtJobRouter);
 app.use("/api/v1/internship", internshipRouter);
-app.use("/api/v1/previousyear", previousYearRouter);
+app.use("/api/v1/pyqs", previousYearRouter);
 app.use("/api/v1/admission", admissionRouter);
 app.use("/api/v1/team", teamRouter);
 app.use("/api/v1/scholarship", scholarshipRouter);

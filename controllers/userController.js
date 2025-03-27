@@ -69,7 +69,7 @@ export const logout = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: "Logged out successfully",
     });
-  });
+});
   
 
 export const getMyProfile = catchAsyncErrors(async (req, res, next) => {

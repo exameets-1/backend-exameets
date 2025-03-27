@@ -23,26 +23,27 @@ export const searchAcrossCollections = async (req, res) => {
         const [jobs, govtJobs, internships, scholarships, results, admitCards, admissions, previousYears] = await Promise.all([
             Job.find({ 
                 $or: [
-                    { role: searchRegex },
-                    { organization: searchRegex },
+                    { jobTitle: searchRegex },
+                    { companyName: searchRegex },
                     { description: searchRegex },
-                    { job_type: searchRegex },
+                    { positionType: searchRegex },
                     { location: searchRegex },
-                    { eligibility_criteria: searchRegex },
-                    { skills_required: searchRegex }
+                    { companyOverview: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ post_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
             
             GovtJob.find({
                 $or: [
-                    { job_type: searchRegex },
-                    { department: searchRegex },
+                    { jobTitle: searchRegex },
+                    { jobOverview: searchRegex },
                     { organization: searchRegex },
-                    { location: searchRegex },
-                    { eligibility_criteria: searchRegex },
-                    { description: searchRegex }
+                    { jobLocation: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ post_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             Internship.find({
                 $or: [
@@ -50,12 +51,13 @@ export const searchAcrossCollections = async (req, res) => {
                     { organization: searchRegex },
                     { description: searchRegex },
                     { location: searchRegex },
-                    { eligibility_criteria: searchRegex },
                     { internship_type: searchRegex },
                     { skills_required: searchRegex },
-                    { qualification: searchRegex }
+                    { qualification: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ post_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             Scholarship.find({
                 $or: [
@@ -63,26 +65,30 @@ export const searchAcrossCollections = async (req, res) => {
                     { organization: searchRegex },
                     { description: searchRegex },
                     { eligibility_criteria: searchRegex },
-                    { category: searchRegex }
+                    { category: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ start_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             Result.find({
                 $or: [
-                    { exam_title: searchRegex },
+                    { title: searchRegex },
                     { organization: searchRegex },
-                    { description: searchRegex }
+                    { postName: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ result_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             AdmitCard.find({
                 $or: [
                     { title: searchRegex },
                     { organization: searchRegex },
-                    { description: searchRegex },
-                    { eligibility_criteria: searchRegex }
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ exam_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             Admission.find({
                 $or: [
@@ -91,9 +97,11 @@ export const searchAcrossCollections = async (req, res) => {
                     { description: searchRegex },
                     { eligibility_criteria: searchRegex },
                     { course: searchRegex },
-                    { category: searchRegex }
+                    { category: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ start_date: -1 }).limit(5),
+            }).sort({ createdAt: -1 }).limit(5),
 
             PreviousYear.find({
                 $or: [
@@ -102,9 +110,11 @@ export const searchAcrossCollections = async (req, res) => {
                     { description: searchRegex },
                     { subject: searchRegex },
                     { category: searchRegex },
-                    { difficulty_level: searchRegex }
+                    { difficulty_level: searchRegex },
+                    { keywords: searchRegex },
+                    { searchDescription: searchRegex }
                 ]
-            }).sort({ year: -1 }).limit(5)
+            }).sort({ createdAt: -1 }).limit(5)
         ]);
 
 
@@ -128,16 +138,16 @@ export const searchAcrossCollections = async (req, res) => {
                         case 'job':
                         case 'govtjob':
                         case 'internship':
-                            return new Date(item.post_date);
+                            return new Date(item.createdAt);
                         case 'scholarship':
                         case 'admission':
-                            return new Date(item.start_date);
+                            return new Date(item.createdAt);
                         case 'result':
-                            return new Date(item.result_date);
+                            return new Date(item.createdAt);
                         case 'admitcard':
-                            return new Date(item.exam_date);
+                            return new Date(item.createdAt);
                         case 'previousyear':
-                            return new Date(item.year, 0, 1); // Convert year to date
+                            return new Date(item.createdAt);
                         default:
                             return new Date(0);
                     }

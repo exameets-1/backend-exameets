@@ -2,6 +2,7 @@ import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Internship } from "../models/internshipSchema.js";
 
+
 export const getAllInternships = catchAsyncErrors(async(req, res, next) => {
     const { 
         searchKeyword, 
@@ -9,9 +10,6 @@ export const getAllInternships = catchAsyncErrors(async(req, res, next) => {
         internship_type, 
         page = 1, 
         limit = 8,
-        sortBy = 'post_date',
-        sortOrder = 'desc',
-        field = 'All'
     } = req.query;
 
     const query = {};
@@ -32,15 +30,7 @@ export const getAllInternships = catchAsyncErrors(async(req, res, next) => {
         };
     }
 
-    // Field filter
-    if (field && field !== "All") {
-        query.field = { 
-            $regex: field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 
-            $options: "i" 
-        };
-    }
-
-    // Enhanced search functionality
+    //  Enhanced search functionality
     if (searchKeyword) {
         const searchRegex = searchKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         query.$or = [
@@ -51,63 +41,26 @@ export const getAllInternships = catchAsyncErrors(async(req, res, next) => {
             { skills_required: { $regex: searchRegex, $options: "i" } },
             { field: { $regex: searchRegex, $options: "i" } },
             { qualification: { $regex: searchRegex, $options: "i" } },
-            { eligibility_criteria: { $regex: searchRegex, $options: "i" } },
-            { internship_type: { $regex: searchRegex, $options: "i" } }
+            { internship_type: { $regex: searchRegex, $options: "i" } },
+            { searchDescription: { $regex: searchRegex, $options: "i" } }
         ];
     }
 
-    try {
-        // Validate pagination parameters
-        const pageNum = Math.max(1, parseInt(page));
-        const limitNum = Math.min(50, Math.max(1, parseInt(limit))); // Limit between 1 and 50
-        const skip = (pageNum - 1) * limitNum;
+    const skip = (page - 1) * limit;
+    const totalInternships = await Internship.countDocuments(query);
 
-        // Count total matching documents
-        const totalInternships = await Internship.countDocuments(query);
-        const totalPages = Math.ceil(totalInternships / limitNum);
+    const internships = await Internship.find(query)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .sort({ createdAt: -1 });
 
-        // Validate sortBy field
-        const allowedSortFields = ['post_date', 'start_date', 'last_date', 'stipend'];
-        const finalSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'post_date';
-        const finalSortOrder = sortOrder === 'asc' ? 1 : -1;
-
-        // Fetch internships with sorting and pagination
-        const internships = await Internship.find(query)
-            .sort({ [finalSortBy]: finalSortOrder })
-            .skip(skip)
-            .limit(limitNum)
-            .select('-__v'); // Exclude version key
-
-        // Calculate pagination metadata
-        const hasNextPage = pageNum < totalPages;
-        const hasPrevPage = pageNum > 1;
-        const nextPage = hasNextPage ? pageNum + 1 : null;
-        const prevPage = hasPrevPage ? pageNum - 1 : null;
-
-        res.status(200).json({
-            success: true,
-            internships,
-            pagination: {
-                currentPage: pageNum,
-                totalPages,
-                totalInternships,
-                hasNextPage,
-                hasPrevPage,
-                nextPage,
-                prevPage,
-                limit: limitNum
-            },
-            filters: {
-                city: city || 'All',
-                internship_type: internship_type || 'All',
-                field: field || 'All',
-                sortBy: finalSortBy,
-                sortOrder: sortOrder
-            }
-        });
-    } catch (error) {
-        return next(new ErrorHandler("Error fetching internships: " + error.message, 500));
-    }
+    res.status(200).json({
+        success: true,
+        internships,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalInternships / limit),
+        totalInternships,
+    });
 });
 
 export const getASingleInternship = catchAsyncErrors(async(req, res, next) => {
@@ -124,50 +77,24 @@ export const getASingleInternship = catchAsyncErrors(async(req, res, next) => {
 });
 
 export const createInternship = catchAsyncErrors(async(req, res, next) => {
-    const {
-        internship_type,
-        title,
-        start_date,
-        duration,
-        skills_required,
-        stipend,
-        organization,
-        location,
-        qualification,
-        eligibility_criteria,
-        application_link,
-        last_date,
-        is_featured,
-        field,
-        description
-    } = req.body;
+    const requiredFields = [
+        'slug', 'title'
+    ];
 
-    if (!internship_type || !title || !start_date || !duration || !skills_required || 
-        !stipend || !organization || !location || !qualification || !eligibility_criteria || 
-        !application_link || !last_date || !field || !description) {
-        return res.status(400).json({
-            success: false,
-            message: "Please fill all fields"
-        });
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+
+    if (missingFields.length > 0) {
+        return next(new ErrorHandler(
+            `Missing required fields: ${missingFields.join(', ')}`,
+            400
+        ));
     }
 
     const internship = await Internship.create({
-        internship_type,
-        title,
-        start_date,
-        duration,
-        skills_required,
-        stipend,
-        post_date: new Date(),
-        organization,
-        location,
-        qualification,
-        eligibility_criteria,
-        application_link,
-        last_date,
-        is_featured: is_featured || false,
-        field,
-        description
+        ...req.body,
+        keywords: req.body.keywords || [],
+        searchDescription: req.body.searchDescription || req.body.description.substring(0, 150),
+        createdAt: new Date()
     });
 
     res.status(201).json({
@@ -190,7 +117,7 @@ export const getLatestInternships = catchAsyncErrors(async (req, res, next) => {
 
 export const deleteInternship = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const internship = await Internship.findById(id);
+    const internship = await Internship.findOne({ _id: id });
 
     if (!internship) {
         return next(new ErrorHandler("Internship not found", 404));
@@ -208,20 +135,19 @@ export const updateInternship = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const internship = await Internship.findById(id);
-    if (!internship) {
-        return next(new ErrorHandler("Internship not found", 404));
-    }
-
-    const updatedInternship = await Internship.findByIdAndUpdate(
-        id,
+    const internship = await Internship.findOneAndUpdate(
+        { _id: id },
         { $set: updates },
         { new: true, runValidators: true }
     );
 
+    if (!internship) {
+        return next(new ErrorHandler("Internship not found", 404));
+    }
+
     res.status(200).json({
         success: true,
-        internship: updatedInternship,
+        internship,
         message: "Internship updated successfully"
     });
 });

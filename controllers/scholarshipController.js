@@ -15,7 +15,10 @@ export const createScholarship = catchAsyncErrors(async (req, res, next) => {
         last_date,
         category,
         qualification,
-        is_featured
+        is_featured,
+        keywords,
+        searchDescription,
+        slug
     } = req.body;
 
     const scholarship = await Scholarship.create({
@@ -30,7 +33,9 @@ export const createScholarship = catchAsyncErrors(async (req, res, next) => {
         category,
         qualification,
         is_featured,
-        post_date: new Date()
+        keywords,
+        searchDescription,
+        slug
     });
 
     res.status(201).json({
@@ -46,18 +51,37 @@ export const getAllScholarships = catchAsyncErrors(async (req, res, next) => {
     const limit = 8;
     const skip = (page - 1) * limit;
     const searchKeyword = req.query.searchKeyword || "";
+    const category = req.query.category || "All";
+    const amount = req.query.amount || "All";
 
-    const searchQuery = searchKeyword ? {
-        $or: [
+    const searchQuery = {};
+
+    // Add search keyword filter
+    if (searchKeyword) {
+        searchQuery.$or = [
             { title: { $regex: searchKeyword, $options: "i" } },
             { description: { $regex: searchKeyword, $options: "i" } },
             { organization: { $regex: searchKeyword, $options: "i" } },
             { qualification: { $regex: searchKeyword, $options: "i" } },
-            { caste: { $regex: searchKeyword, $options: "i" } },
-            { academicYear: { $regex: searchKeyword, $options: "i" } },
-            { category: { $regex: searchKeyword, $options: "i" } }
-        ]
-    } : {};
+            { category: { $regex: searchKeyword, $options: "i" } },
+        ];
+    }
+
+    // Add category filter
+    if (category !== "All") {
+        searchQuery.category = category;
+    }
+
+    // Add amount filter
+    if (amount !== "All") {
+        if (amount === "below50k") {
+            searchQuery.amount = { $lt: 50000 };
+        } else if (amount === "50kTo1L") {
+            searchQuery.amount = { $gte: 50000, $lte: 100000 };
+        } else if (amount === "above1L") {
+            searchQuery.amount = { $gt: 100000 };
+        }
+    } 
 
     const totalScholarships = await Scholarship.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalScholarships / limit);
@@ -72,7 +96,7 @@ export const getAllScholarships = catchAsyncErrors(async (req, res, next) => {
         scholarships,
         currentPage: page,
         totalPages,
-        totalScholarships
+        totalScholarships,
     });
 });
 

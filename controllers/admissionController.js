@@ -9,8 +9,6 @@ export const getAllAdmissions = catchAsyncErrors(async (req, res, next) => {
         location,
         page = 1, 
         limit = 8,
-        sortBy = 'last_date',
-        sortOrder = 'asc'
     } = req.query;
 
     try {
@@ -41,11 +39,6 @@ export const getAllAdmissions = catchAsyncErrors(async (req, res, next) => {
             query.location = { $regex: location, $options: "i" };
         }
 
-        // Optional: Only show active/upcoming admissions if specified
-        if (req.query.showActiveOnly === 'true') {
-            query.last_date = { $gte: new Date() };
-        }
-
         // Validate pagination parameters
         const pageNum = Math.max(1, parseInt(page));
         const limitNum = Math.min(50, Math.max(1, parseInt(limit))); // Limit between 1 and 50
@@ -55,14 +48,9 @@ export const getAllAdmissions = catchAsyncErrors(async (req, res, next) => {
         const totalAdmissions = await Admission.countDocuments(query);
         const totalPages = Math.ceil(totalAdmissions / limitNum);
 
-        // Validate sort parameters
-        const allowedSortFields = ['last_date', 'start_date', 'post_date'];
-        const finalSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'last_date';
-        const finalSortOrder = sortOrder === 'desc' ? -1 : 1;
-
         // Fetch admissions with sorting and pagination
         const admissions = await Admission.find(query)
-            .sort({ [finalSortBy]: finalSortOrder })
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum)
             .select('-__v')
@@ -89,10 +77,6 @@ export const getAllAdmissions = catchAsyncErrors(async (req, res, next) => {
                 nextPage,
                 prevPage,
                 limit: limitNum
-            },
-            filters: {
-                categories,
-                availableSortFields: allowedSortFields
             }
         });
     } catch (error) {
@@ -152,7 +136,10 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         category,
         fees,
         location,
-        is_featured
+        is_featured,
+        keywords,
+        searchDescription,
+        slug
     } = req.body;
 
     const admission = await Admission.create({
@@ -168,6 +155,9 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         fees,
         location,
         is_featured,
+        keywords,
+        searchDescription,
+        slug,
         post_date: new Date()
     });
 
@@ -201,46 +191,3 @@ export const updateAdmission = catchAsyncErrors(async (req, res, next) => {
         admission
     });
 });
-
-// Additional utility functions
-
-export const getAdmissionsByInstitution = catchAsyncErrors(async (req, res, next) => {
-    const { institution } = req.params;
-    const admissions = await Admission.find({ 
-        institution: { $regex: institution, $options: "i" }
-    }).sort({ applicationDeadline: 1 });
-
-    res.status(200).json({
-        success: true,
-        admissions
-    });
-});
-
-export const getUpcomingDeadlines = catchAsyncErrors(async (req, res, next) => {
-    const currentDate = new Date();
-    const admissions = await Admission.find({
-        applicationDeadline: { $gt: currentDate },
-        status: 'Open'
-    })
-    .sort({ applicationDeadline: 1 })
-    .limit(10);
-
-    res.status(200).json({
-        success: true,
-        admissions
-    });
-});
-
-export const getAdmissionsByLocation = catchAsyncErrors(async (req, res, next) => {
-    const { state } = req.params;
-    const admissions = await Admission.find({
-        'location.state': { $regex: state, $options: "i" }
-    }).sort({ applicationDeadline: 1 });
-
-    res.status(200).json({
-        success: true,
-        admissions
-    });
-});
-
-// Get latest admissions

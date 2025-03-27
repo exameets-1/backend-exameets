@@ -6,40 +6,37 @@ export const getAllJobs = catchAsyncErrors(async (req, res, next) => {
   const { city, job_type, searchKeyword, page = 1, limit = 8 } = req.query;
   const query = {};
 
-  // Filter by location
+  // Filter by city
   if (city && city !== "All") {
-    query.location = { $regex: city, $options: "i" };
+    query.city = { $regex: city, $options: "i" };
   }
 
-  // Filter by job type
+  // Filter by position type
   if (job_type && job_type !== "All") {
-    query.job_type = job_type;
+    query.positionType = job_type;
   }
 
-  // Update search query to match schema fields
+  // Search across multiple fields
   if (searchKeyword) {
     query.$or = [
-      { role: { $regex: searchKeyword, $options: "i" } },
-      { organization: { $regex: searchKeyword, $options: "i" } },
-      { location: { $regex: searchKeyword, $options: "i" } },
-      { experience_required: { $regex: searchKeyword, $options: "i" } },
-      { skills_required: { $in: [new RegExp(searchKeyword, 'i')] } },
-      { job_type: { $regex: searchKeyword, $options: "i" } }
+      { jobTitle: { $regex: searchKeyword, $options: "i" } },
+      { companyName: { $regex: searchKeyword, $options: "i" } },
+      { experience: { $regex: searchKeyword, $options: "i" } },
+      { languages: { $in: [new RegExp(searchKeyword, 'i')] } },
+      { frameworks: { $in: [new RegExp(searchKeyword, 'i')] } },
+      { databases: { $in: [new RegExp(searchKeyword, 'i')] } },
+      { methodologies: { $in: [new RegExp(searchKeyword, 'i')] } },
+      { softSkills: { $in: [new RegExp(searchKeyword, 'i')] } }
     ];
   }
 
-  // Calculate skip value for pagination
   const skip = (page - 1) * limit;
-
-  // Get total count of matching documents
   const totalJobs = await Job.countDocuments(query);
 
-  // Get paginated results
   const jobs = await Job.find(query)
     .skip(skip)
     .limit(parseInt(limit))
-    .sort({_id : -1});
-  
+    .sort({ createdAt: -1 }); // Updated sorting field
 
   res.status(200).json({
     success: true,
@@ -66,7 +63,7 @@ export const getASingleJob = catchAsyncErrors(async (req, res, next) => {
 
 export const getLatestJobs = catchAsyncErrors(async (req, res, next) => {
   const jobs = await Job.find()
-    .sort({ _id: -1 })
+    .sort({ "metadata.createdAt": -1 })
     .limit(5);
 
   res.status(200).json({
@@ -77,7 +74,6 @@ export const getLatestJobs = catchAsyncErrors(async (req, res, next) => {
 
 export const deleteJob = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
-  
   const job = await Job.findById(id);
   
   if (!job) {
@@ -93,128 +89,123 @@ export const deleteJob = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const updateJob = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const jobId = req.params.id;
-    const updates = req.body;
+  const jobId = req.params.id;
+  const updates = req.body;
 
-    // Find the job
-    const job = await Job.findById(jobId);
+  // Get allowed updates from schema paths (dynamic and maintainable)
+  const schemaPaths = Object.keys(Job.schema.paths);
+  const immutableFields = ['_id', 'createdAt'];
+  const allowedUpdates = schemaPaths.filter(
+    path => !immutableFields.includes(path)
+  );
 
-    if (!job) {
-      return next(new ErrorHandler("Job not found", 404));
+  // Filter valid updates
+  const validUpdates = Object.keys(updates).filter(key => 
+    allowedUpdates.includes(key)
+  );
+
+  if (validUpdates.length === 0) {
+    return next(new ErrorHandler('No valid fields to update', 400));
+  }
+
+  // Create update object
+  const updateObject = {};
+  validUpdates.forEach(key => {
+    updateObject[key] = updates[key];
+  });
+
+  // Handle update with proper validation
+  const updatedJob = await Job.findByIdAndUpdate(
+    jobId,
+    updateObject,
+    { 
+      new: true,
+      runValidators: true, // Ensures schema validations run
+      context: 'query' // Needed for proper $set validation
     }
+  );
 
-    // Remove any undefined or null values from updates
-    Object.keys(updates).forEach(key => {
-      if (updates[key] === undefined || updates[key] === null) {
-        delete updates[key];
-      }
-    });
-
-    // Update the job
-    const updatedJob = await Job.findByIdAndUpdate(
-      jobId,
-      { $set: updates },
-      { new: true, runValidators: false }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Job updated successfully",
-      job: updatedJob
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
+  if (!updatedJob) {
+    return next(new ErrorHandler('Job not found', 404));
   }
-});
 
-export const getAllITJobs = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const jobs = await Job.find({ category: 'IT' });
-    res.status(200).json({
-      success: true,
-      jobs
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
-});
-
-export const getAllNonITJobs = catchAsyncErrors(async (req, res, next) => {
-  try {
-    const jobs = await Job.find({ category: { $ne: 'IT' } });
-    res.status(200).json({
-      success: true,
-      jobs
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 500));
-  }
+  res.status(200).json({
+    success: true,
+    message: "Job updated successfully",
+    job: updatedJob
+  });
 });
 
 export const createJob = catchAsyncErrors(async (req, res, next) => {
-    try {
-        const {
-            category,
-            job_type,
-            organization,
-            location,
-            role,
-            experience_required,
-            skills_required,
-            post_date,
-            eligibility_criteria,
-            application_link,
-            description,
-            salary_range,
-            last_date,
-            valid_until,
-            vacancy,
-            qualification
-        } = req.body;
+  // Validate conditional submission requirements
+  if (req.body.submissionMethod === 'email' && !req.body.contactEmail) {
+    return next(new ErrorHandler('Contact email is required for email submissions', 400));
+  }
+  if (req.body.submissionMethod === 'portal' && !req.body.applicationPortalLink) {
+    return next(new ErrorHandler('Application portal link is required for portal submissions', 400));
+  }
 
-        // Validate required fields
-        const requiredFields = [
-            'category',
-            'job_type',
-            'organization',
-            'location',
-            'role',
-            'experience_required',
-            'skills_required',
-            'post_date',
-            'eligibility_criteria',
-            'application_link',
-            'description',
-            'salary_range',
-            'last_date',
-            'valid_until',
-            'vacancy',
-            'qualification'
-        ];
+  if (req.body.keywords && !Array.isArray(req.body.keywords)) {
+    return next(new ErrorHandler('Keywords must be an array', 400));
+  }
 
-        const missingFields = requiredFields.filter(field => !req.body[field]);
-        if (missingFields.length > 0) {
-            return next(new ErrorHandler(`Missing required fields: ${missingFields.join(', ')}`, 400));
-        }
+  if (req.body.searchDescription && req.body.searchDescription.length > 160) {
+    return next(new ErrorHandler('Search description must be less than 160 characters', 400));
+  }
 
-        // Convert date strings to Date objects and set notification_about based on category
-        const formattedData = {
-            ...req.body,
-            post_date: new Date(post_date),
-            last_date: new Date(last_date),
-            valid_until: new Date(valid_until),
-            notification_about: category.toLowerCase() === 'it' ? 'techjobs' : 'techjobs'  // both IT and NON-IT are techjobs
-        };
+  // Prepare job data with defaults
+  const jobData = {
+    ...req.body,
+    keywords: req.body.keywords || [],
+    searchDescription: req.body.searchDescription || '',
+    // Set empty arrays for optional technical skills
+    languages: req.body.languages || [],
+    frameworks: req.body.frameworks || [],
+    databases: req.body.databases || [],
+    methodologies: req.body.methodologies || [],
+    preferredQualifications: req.body.preferredQualifications || [],
+    // Initialize optional fields
+    startDate: req.body.startDate || null,
+    applicationDeadline: req.body.applicationDeadline || null
+  };
 
-        const newJob = await Job.create(formattedData);
-        
-        res.status(201).json({
-            success: true,
-            job: newJob,
-            message: "Job created successfully"
-        });
-    } catch (error) {
-        return next(new ErrorHandler(error.message, 500));
-    }
+  // Let Mongoose handle schema validation
+  const newJob = await Job.create(jobData);
+  
+  res.status(201).json({
+    success: true,
+    job: newJob,
+    message: "Job created successfully"
+  });
+});
+
+// Additional category-based controllers
+
+export const getAllITJobs = catchAsyncErrors(async (req, res, next) => {
+  const jobs = await Job.find({ category: "IT" });
+  
+  res.status(200).json({
+    success: true,
+    jobs
+  });
+});
+
+export const getAllNonITJobs = catchAsyncErrors(async (req, res, next) => {
+  const jobs = await Job.find({ category: { $ne: "IT" } });
+  
+  res.status(200).json({
+    success: true,
+    jobs
+  });
+});
+
+export const getFeaturedJobs = catchAsyncErrors(async (req, res, next) => {
+  const jobs = await Job.find({ "dates.applicationDeadline": { $gt: new Date() } })
+    .sort({ "metadata.createdAt": -1 })
+    .limit(3);
+
+  res.status(200).json({
+    success: true,
+    jobs
+  });
 });

@@ -1,80 +1,166 @@
 import mongoose from "mongoose";
 
 const govtJobSchema = new mongoose.Schema({
-    
-    job_type: {
+    jobTitle: {
         type: String,
-        required: true,
     },
-    department: {
+    jobOverview: {
         type: String,
-        required: true,
     },
-    location: {
+    year: {
         type: String,
-        required: true,
     },
     organization: {
         type: String,
-        required: true,
     },
-    post_date: {
-        type: Date,
-        required: true,
+    postNames: {
+        type: [String],
     },
-    eligibility_criteria: {
+    totalVacancies: {
         type: String,
-        required: true,
     },
-    application_link: {
+    applicationMode: {
         type: String,
-        required: true,
     },
-    salary_range: {
+    jobLocation: {
         type: String,
-        required: false,
     },
-    last_date: {
+    officialWebsite: {
         type: String,
-        required: true,
     },
-    valid_until: {
+    notification_about: {
         type: String,
-        required: false,
     },
-    result_link: {
+  
+  // Important Dates
+    notificationReleaseDate: {
         type: String,
-        required: false,
     },
-    description: {
+    applicationStartDate: {
         type: String,
-        required: true,
     },
-    qualifications: {
+    applicationEndDate: {
         type: String,
-        required: true,
     },
-    role : {
+    examInterviewDate: {
         type: String,
-        required: true
     },
-    vacancy : {
+  
+  // Eligibility Criteria
+    educationalQualifications: {
+        type: [String],
+    },
+    ageLimitMin: {
         type: String,
-        required: true
     },
-    post : {
+    ageLimitMax: {
         type: String,
-        required: true
     },
-    notification_about : {
+    ageRelaxation: {
         type: String,
-        required: true
     },
-    
+    additionalRequirements: {
+        type: [String],
+    },
+  
+  // Vacancy Details
+    vacancyPostNames: {
+        type: [String],
+    },
+    vacancyCounts: {
+        type: [String],
+    },
+    vacancyPayScales: {
+        type: [String],
+    },
+  
+  // Application Fee
+    applicationFeeGeneral: {
+        type: String,
+    },
+    applicationFee_SC_ST_PWD : {
+        type: String,
+    },
+    applicationFeePaymentMode: {
+        type: String,
+    },
+  
+  // Selection Process
+    selectionProcess: {
+        type: [String],
+    },
+  
+  // How to Apply
+    howToApplyOnlineSteps: {
+        type: [String],
+    },
+    howToApplyOfflineSteps: {
+        type: [String],
+    },
+  
+  // Documents
+    requiredDocuments: {
+        type: [String],
+    },
+  
+  // Exam Pattern
+    examSubjects: {
+        type: [String],
+    },
+    examQuestionCounts: {
+        type: [String],
+    },
+    examMarks: {
+        type: [String],
+    },
+    examDurations: {
+        type: [String],
+    },
+  
+  // Links
+    notificationPDFLink: {
+        type: String,
+    },
+    applyOnlineLink: {
+        type: String,
+    },
+    officialWebsiteLink: {
+        type: String,
+    },
+
+  
+  // FAQs questions and answers
+    faq: {
+        type: [{
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                default: () => new mongoose.Types.ObjectId(),
+                auto: true
+            },
+            question: String,
+            answer: String
+        }],
+        default: []
+    },
+    keywords: {
+        type: [String],
+    },
+    searchDescription: {
+        type: String,
+    },
+    slug: {
+        //title and date at the end
+        type: String,
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false,
+    },
     createdAt: {
         type: Date,
-        default: Date.now
-    }
-})
+        default: Date.now,
+    },
+});
+
 
 export const GovtJob = mongoose.model('GovtJob', govtJobSchema);

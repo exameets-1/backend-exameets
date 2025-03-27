@@ -1,81 +1,131 @@
 import mongoose from "mongoose";
 
-const jobSchema = new mongoose.Schema({
+const jobPostingSchema = new mongoose.Schema({
+    jobTitle: {
+        type: String,
+    },
     category: {
         type: String,
-        required: true,
-        enum: ['IT', 'NON-IT']
+        enum: ['IT', 'NON-IT'],
     },
-    job_type: {
+    city: {
         type: String,
-        required: true,
     },
-    organization: {
+    state: {
         type: String,
-        required: true,
     },
-    location: {
+    country: {
         type: String,
-        required: true,
     },
-    role: {
+    positionType: {
         type: String,
-        required: true,
+        enum: ['Full-Time', 'Part-Time', 'Contract'],
     },
-    experience_required: {
+    companyName: {
         type: String,
-        required: true,
     },
-    skills_required: {
+    companyOverview: {
+        type: String,
+    },
+    positionSummary: {
+        type: String,
+    },
+    keyResponsibilities: {
         type: [String],
-        required: true,
+        validate: [(arr) => arr.length >= 1, '{PATH} must have at least 1 item'],
     },
-    post_date: {
-        type: Date,
-        required: true,
+    education: {
+        type: [String],
     },
-    eligibility_criteria: {
+    experience: {
         type: String,
-        required: true,
     },
-    application_link: {
+    languages: {
+        type: [String],
+        default: [],
+    },
+    frameworks: {
+        type: [String],
+        default: [],
+    },
+    databases: {
+        type: [String],
+        default: [],
+    },
+    methodologies: {
+        type: [String],
+        default: [],
+    },
+    softSkills: {
+        type: [String],
+    },
+    preferredQualifications: {
+        type: [String],
+        default: [],
+    },
+    startDate: {
         type: String,
-        required: true,
+        required: false,
     },
-    description: {
+    applicationDeadline: {
         type: String,
-        required: true,
+        required: false,
     },
-    salary_range: {
+    benefits: {
+        type: [String],
+    },
+    submissionMethod: {
         type: String,
-        required: true,
+        enum: ['email', 'portal'],
     },
-    last_date: {
+    contactEmail: {
         type: String,
-        required: true,
+        required: function () {
+            return this.submissionMethod === 'email';
+        },
     },
-    valid_until: {
+    applicationPortalLink: {
         type: String,
-        required: true,
+        required: function () {
+            return this.submissionMethod === 'portal';
+        },
     },
-    vacancy: { 
+    jobReferenceNumber: {
         type: String,
-        required: true,
     },
-    qualification: {
+    equalOpportunityStatement: {
         type: String,
-        required: true,
     },
-    notification_about : {
-        type : String,
-        required : true
+    slug: {
+        type: String,
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false,
+    },
+    keywords: {
+        type: [String],
+    },
+    searchDescription: {
+        type: String,
+    },
+    faq: {
+        type: [{
+            question: String,
+            answer: String,
+            _id: {
+                type: mongoose.Schema.Types.ObjectId,
+                default: () => new mongoose.Types.ObjectId(),
+                auto: true
+            }
+        }],
+        default: []
     },
     createdAt: {
         type: Date,
-        default: Date.now
-    }
-}, {
-    timestamps: true
+        default: Date.now,
+    },
 });
 
-export const Job = mongoose.model("Job", jobSchema);
+
+export const Job = mongoose.model('Job', jobPostingSchema);

@@ -1,32 +1,37 @@
 import express from "express";
 import { isAuthenticated } from "../middlewares/auth.js";
 import {
-    getAllPreviousYears,
-    getASinglePreviousYear,
-    updatePreviousYear,
-    deletePreviousYear,
-    createPreviousYear,
-    getLatestPreviousYears
+    getAllSubjects,
+    getPapersBySubject,
+    getPapersBySubjectAndYear,
+    getLatestPapers,
+    addPaper,
+    updatePaper,
+    deletePaper
 } from "../controllers/previousYearController.js";
 
 const router = express.Router();
 
-// Create new previous year paper
-router.post("/create", isAuthenticated, createPreviousYear);
 
 // Get all previous year papers
-router.get("/getall", getAllPreviousYears);
+router.get("/", getAllSubjects);
 
+//GET latest papers
+router.get("/latest", getLatestPapers);
 // Get single previous year paper
-router.get("/get/:id", getASinglePreviousYear);
+router.get("/:subjectSlug", getPapersBySubject);
 
-// Update previous year paper
-router.put("/update/:id", isAuthenticated, updatePreviousYear);
+// Get papers of a subject for a specific year
+router.get("/:subjectSlug/:year", getPapersBySubjectAndYear);
 
-// Delete previous year paper
-router.delete("/:id", isAuthenticated, deletePreviousYear);
+// Add a new paper
+router.post("/add", isAuthenticated, addPaper);
 
-// Get latest previous year papers
-router.get("/latest", getLatestPreviousYears);
+// Update a paper
+router.put("/:paperId", isAuthenticated, updatePaper);
+
+// Delete a paper
+router.delete("/:paperId", isAuthenticated, deletePaper);
+
 
 export default router;

@@ -1,126 +1,153 @@
-import {catchAsyncErrors} from '../middlewares/catchAsyncErrors.js'
-import ErrorHandler from '../middlewares/error.js'
-import {PreviousYear} from '../models/previousYearSchema.js'
+import { catchAsyncErrors } from '../middlewares/catchAsyncErrors.js';
+import ErrorHandler from '../middlewares/error.js';
+import { PreviousYear } from '../models/previousYearSchema.js';
 
-export const getAllPreviousYears = catchAsyncErrors(async(req, res, next) => {
-    const {searchKeyword, page = 1, limit = 4} = req.query;
+// Get All Unique Subjects for /pyqs Page
+export const getAllSubjects = catchAsyncErrors(async (req, res, next) => {
+    const subjects = await PreviousYear.distinct("subject");
 
-    const query = {}
-    if(searchKeyword){
-        query.$or = [
-        
-            {subject : {$regex: searchKeyword, $options: "i"}},
-            {organization : {$regex: searchKeyword, $options: "i"}}
-        ]
+    if (!subjects.length) {
+        return next(new ErrorHandler("No subjects found", 404));
     }
-    const skip = (page -1) * limit;
-    const totalPreviousYears = await PreviousYear.countDocuments(query)
-
-    const previousYears = await PreviousYear.find(query)
-    .sort({_id : -1})
-    .skip(skip)
-    .limit(parseInt(limit));
-    
-
-    res.status(200).json({
-        success : true,
-        previousYears,
-        currentPage: parseInt(page),
-        totalPages : Math.ceil(totalPreviousYears/limit),
-        totalPreviousYears
-    })
-})
-
-export const getASinglePreviousYear = catchAsyncErrors(async(req, res, next) => {
-    const {id} = req.params;
-    const previousYear = await PreviousYear.findById(id);
-
-    if(!previousYear){
-        return next(new ErrorHandler("Previous Year Papers not found"));
-
-    }
-    res.status(200).json({
-        success : true,
-        previousYear
-    })
-})
-
-export const deletePreviousYear = catchAsyncErrors(async(req, res, next) => {
-    const {id} = req.params;
-    const previousYear = await PreviousYear.findById(id);
-    if(!previousYear){
-        return next(new ErrorHandler("Previous Year Papers not found"));
-    }
-    await previousYear.deleteOne();
-    res.status(200).json({
-        success : true,
-        message : "Previous Year Papers deleted successfully"
-    })
-})
-
-export const updatePreviousYear = catchAsyncErrors(async(req, res, next) => {
-    const { id } = req.params;
-    const previousYear = await PreviousYear.findById(id);
-    
-    if(!previousYear) {
-        return next(new ErrorHandler("Previous Year Paper not found"));
-    }
-
-    const updatedPreviousYear = await PreviousYear.findByIdAndUpdate(
-        id,
-        req.body,
-        { new: true, runValidators: true }
-    );
 
     res.status(200).json({
         success: true,
-        previousYear: updatedPreviousYear,
-        message: "Previous Year Paper updated successfully"
+        subjects
     });
 });
 
-export const getLatestPreviousYears = catchAsyncErrors(async(req, res, next) => {
-    const previousYears = await PreviousYear.find()
-    .sort({ _id: -1 })
-    .limit(5);
+// Get All Papers of a Subject Grouped by Year for /pyqs/:subjectSlug
+export const getPapersBySubject = catchAsyncErrors(async (req, res, next) => {
+    const { subjectSlug } = req.params;
+    const decodedSubject = decodeURIComponent(subjectSlug);
+
+    const papers = await PreviousYear.find({ subject: decodedSubject }).sort({ year: -1 });
+
+    if (!papers.length) {
+        return next(new ErrorHandler(`No papers found for this subject :${subjectSlug}`, 404));
+    }
+
+    // Group papers by year
+    const papersByYear = papers.reduce((acc, paper) => {
+        if (!acc[paper.year]) {
+            acc[paper.year] = [];
+        }
+        acc[paper.year].push(paper);
+        return acc;
+    }, {});
 
     res.status(200).json({
-        success : true,
-        previousYears
-    })
-})
+        success: true,
+        subject: decodedSubject,
+        papersByYear
+    });
+});
 
-export const createPreviousYear = catchAsyncErrors(async (req, res, next) => {
-    const {
+// Get Papers of a Subject for a Specific Year for /pyqs/:subjectSlug/:year
+export const getPapersBySubjectAndYear = catchAsyncErrors(async (req, res, next) => {
+    const { subjectSlug, year } = req.params;
+    const decodedSubject = decodeURIComponent(subjectSlug);
+
+    const papers = await PreviousYear.find({ subject: decodedSubject, year: parseInt(year) });
+
+    if (!papers.length) {
+        return next(new ErrorHandler("No papers found for this subject and year", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        subject: decodedSubject,
+        year: parseInt(year),
+        papers
+    });
+});
+
+// Get Latest Papers
+export const getLatestPapers = catchAsyncErrors(async (req, res, next) => {
+    const papers = await PreviousYear.find().sort({ createdAt: -1 }).limit(5); // Fetch the latest 5 papers
+
+    if (!papers.length) {
+        return next(new ErrorHandler("No papers found", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        papers, // Return the latest papers
+    });
+});
+
+// Add a New Paper (Admin Only)
+export const addPaper = catchAsyncErrors(async (req, res, next) => {
+    const { title, subject, year, paper_link, solution_link, difficulty_level, exam_name, category, slug, is_featured, keywords , description, searchDescription } = req.body;
+
+    if (!title || !subject || !year || !paper_link) {
+        return next(new ErrorHandler("Title, subject, year, and paper link are required", 400));
+    }
+
+    const paper = await PreviousYear.create({
         title,
-        exam_name,
-        description,
         subject,
         year,
-        difficulty_level,
-        category,
         paper_link,
         solution_link,
-        is_featured
-    } = req.body;
-
-    const previousYear = await PreviousYear.create({
-        title,
+        difficulty_level,
         exam_name,
-        description,
-        subject,
-        year,
-        difficulty_level,
         category,
-        paper_link,
-        solution_link,
+        slug,
         is_featured,
-        post_date: new Date()
+        keywords,
+        description,
+        searchDescription,
+        createdAt: new Date(),
     });
 
     res.status(201).json({
         success: true,
-        message: "Previous year paper created successfully",
-        previousYear
+        message: "Paper added successfully",
+        paper,
     });
 });
+
+// Delete a Paper (Admin Only)
+export const deletePaper = catchAsyncErrors(async (req, res, next) => {
+    const { paperId } = req.params;
+
+    const paper = await PreviousYear.findById(paperId);
+
+    if (!paper) {
+        return next(new ErrorHandler("Paper not found", 404));
+    }
+
+    // Use deleteOne instead of remove
+    await PreviousYear.deleteOne({ _id: paperId });
+
+    res.status(200).json({
+        success: true,
+        message: "Paper deleted successfully",
+    });
+});
+
+// Update a Paper (Admin Only)
+export const updatePaper = catchAsyncErrors(async (req, res, next) => {
+    const { paperId } = req.params;
+    const updates = req.body;
+
+    const paper = await PreviousYear.findById(paperId);
+
+    if (!paper) {
+        return next(new ErrorHandler("Paper not found", 404));
+    }
+
+    Object.keys(updates).forEach((key) => {
+        paper[key] = updates[key];
+    });
+
+    await paper.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Paper updated successfully",
+        paper,
+    });
+});
+
