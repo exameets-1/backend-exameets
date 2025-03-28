@@ -35,7 +35,7 @@ const teamSchema = new mongoose.Schema({
     },
     certificates: {
         type: [String],
-        required: false
+        default : []
     }
 });
 

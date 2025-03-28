@@ -140,7 +140,6 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         keywords,
         searchDescription,
         slug,
-        postedBy
     } = req.body;
 
     const admission = await Admission.create({
@@ -160,7 +159,7 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         searchDescription,
         slug,
         createdAt: new Date(),
-        postedBy
+        postedBy: req.user._id
     });
 
     res.status(201).json({

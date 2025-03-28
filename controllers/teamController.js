@@ -2,6 +2,42 @@ import {Team} from "../models/teamSchema.js";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/error.js";
 
+export const createTeam = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const {
+            name,
+            position,
+            image,
+            description, // Add description
+            strengths,   // Add strengths
+            duration,    // Add duration
+            linkedin,    // Add linkedin
+            github,      // Add github
+            certificates // Add certificates
+        } = req.body;
+
+        const team = await Team.create({
+            name,
+            position,
+            image,
+            description,
+            strengths,
+            duration,
+            linkedin,
+            github,
+            certificates
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Team created successfully",
+            team
+        });
+    } catch (error) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
+
 export const getAllTeams = catchAsyncErrors(async(req, res , next) => {
     try{
         const page = parseInt(req.query.page) || 1;
