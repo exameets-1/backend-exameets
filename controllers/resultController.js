@@ -108,7 +108,13 @@ export const createResult = catchAsyncErrors(async (req, res, next) => {
             return next(new ErrorHandler("Total Vacancies is a required field", 400));
         }
 
-        const newResult = await Result.create(req.body);
+        const newResult = await Result.create({
+            ...req.body,
+            keywords: req.body.keywords || [],
+            searchDescription: req.body.searchDescription || req.body.description.substring(0, 150),
+            createdAt: new Date(),
+            postedBy : req.user._id
+        });
 
         res.status(201).json({
             success: true,

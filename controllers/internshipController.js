@@ -94,7 +94,8 @@ export const createInternship = catchAsyncErrors(async(req, res, next) => {
         ...req.body,
         keywords: req.body.keywords || [],
         searchDescription: req.body.searchDescription || req.body.description.substring(0, 150),
-        createdAt: new Date()
+        createdAt: new Date(),
+        postedBy : req.user._id
     });
 
     res.status(201).json({

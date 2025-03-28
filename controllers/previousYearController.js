@@ -99,6 +99,7 @@ export const addPaper = catchAsyncErrors(async (req, res, next) => {
         description,
         searchDescription,
         createdAt: new Date(),
+        postedBy : req.user._id
     });
 
     res.status(201).json({

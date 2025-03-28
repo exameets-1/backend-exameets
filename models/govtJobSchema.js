@@ -160,6 +160,10 @@ const govtJobSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    postedBy : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
 });
 
 

@@ -76,6 +76,10 @@ const scholarshipSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },   
+    postedBy : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }
 });
 

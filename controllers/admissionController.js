@@ -139,7 +139,8 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         is_featured,
         keywords,
         searchDescription,
-        slug
+        slug,
+        postedBy
     } = req.body;
 
     const admission = await Admission.create({
@@ -158,7 +159,8 @@ export const createAdmission = catchAsyncErrors(async (req, res, next) => {
         keywords,
         searchDescription,
         slug,
-        post_date: new Date()
+        createdAt: new Date(),
+        postedBy
     });
 
     res.status(201).json({

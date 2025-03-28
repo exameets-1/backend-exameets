@@ -200,7 +200,7 @@ export const createGovtJob = catchAsyncErrors(async (req, res, next) => {
           keywords,
           searchDescription,
           isFeatured,
-          faq
+          faq,
       } = req.body;
 
       // Validate required fields based on schema
@@ -261,7 +261,8 @@ export const createGovtJob = catchAsyncErrors(async (req, res, next) => {
           keywords,
           searchDescription,
           isFeatured,
-          faq
+          faq,
+          postedBy : req.user._id
       });
 
       res.status(201).json({

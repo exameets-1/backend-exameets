@@ -166,7 +166,8 @@ export const createJob = catchAsyncErrors(async (req, res, next) => {
     preferredQualifications: req.body.preferredQualifications || [],
     // Initialize optional fields
     startDate: req.body.startDate || null,
-    applicationDeadline: req.body.applicationDeadline || null
+    applicationDeadline: req.body.applicationDeadline || null,
+    postedBy : req.user._id
   };
 
   // Let Mongoose handle schema validation

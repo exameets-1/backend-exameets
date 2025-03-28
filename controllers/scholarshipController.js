@@ -18,7 +18,7 @@ export const createScholarship = catchAsyncErrors(async (req, res, next) => {
         is_featured,
         keywords,
         searchDescription,
-        slug
+        slug,
     } = req.body;
 
     const scholarship = await Scholarship.create({
@@ -35,7 +35,9 @@ export const createScholarship = catchAsyncErrors(async (req, res, next) => {
         is_featured,
         keywords,
         searchDescription,
-        slug
+        slug,
+        createdAt: new Date(),
+        postedBy : req.user._id
     });
 
     res.status(201).json({

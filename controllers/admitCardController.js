@@ -93,7 +93,13 @@ export const createAdmitCard = catchAsyncErrors(async (req, res, next) => {
     }
   }
 
-  const admitCard = await AdmitCard.create(req.body);
+  const admitCard = await AdmitCard.create({
+    ...req.body,
+    keywords: req.body.keywords || [],
+    searchDescription: req.body.searchDescription || req.body.description.substring(0, 150),
+    createdAt: new Date(),
+    postedBy : req.user._id
+  });
 
   res.status(201).json({
     success: true,

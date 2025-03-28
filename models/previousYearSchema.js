@@ -57,7 +57,10 @@ const previousYearSchema = new mongoose.Schema({
     },
     searchDescription: {
         type: String,
-    },
+    },    postedBy : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
 });
 
 export const PreviousYear = mongoose.model("PreviousYear", previousYearSchema);

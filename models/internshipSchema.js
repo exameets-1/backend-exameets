@@ -63,6 +63,10 @@ const intershShipSchema = new mongoose.Schema({
     searchDescription: {
         type: String,
     },
+    postedBy : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
 })
 
 export const Internship = mongoose.model('Internship', intershShipSchema);
