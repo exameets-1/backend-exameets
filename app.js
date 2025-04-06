@@ -28,11 +28,13 @@ app.get("/", (req, res) => {
 });
 
 
-// Apply CORS to all routes
 app.use(cors({
-  origin: [process.env.FRONTEND_URL],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://frontend-exameets.vercel.app'] 
+    : ['http://localhost:5173'], // Add any local ports you use
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Handle preflight requests
