@@ -175,10 +175,9 @@ export const updateAdmission = catchAsyncErrors(async (req, res, next) => {
     if (!admission) {
         return next(new ErrorHandler("Admission not found", 404));
     }
-
     admission = await Admission.findByIdAndUpdate(req.params.id, 
         { 
-            ...req.body,
+            ...req.body.updatedData,
             lastUpdated: Date.now()
         }, 
         {
@@ -186,7 +185,6 @@ export const updateAdmission = catchAsyncErrors(async (req, res, next) => {
             runValidators: true
         }
     );
-
     res.status(200).json({
         success: true,
         admission

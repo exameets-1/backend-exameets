@@ -11,6 +11,7 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
     "razorpay": "^2.9.5",
+    "twilio": "^5.5.1",
     "validator": "^13.12.0"
   },
   "name": "backend",

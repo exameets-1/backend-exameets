@@ -19,6 +19,7 @@ import resultRouter from './routes/resultRouter.js'
 import admitCardRouter from './routes/admitCardRouter.js'
 import preferenceRouter from './routes/preferenceRouter.js'
 import searchRoutes from './routes/searchRoutes.js';
+import phoneVerificationRoutes from './routes/phoneVerificationRouter.js';
 //import { newsLetterCron } from './automation/newsLetterCron.js';
 const app = express()
 // In your app.js, add this before your other routes
@@ -52,6 +53,7 @@ app.use("/api/v1/admission", admissionRouter);
 app.use("/api/v1/team", teamRouter);
 app.use("/api/v1/scholarship", scholarshipRouter);
 app.use("/api/v1/email", emailVerificationRoutes);
+app.use("/api/v1/phone", phoneVerificationRoutes);
 app.use("/api/v1/forgotpassword", forgotPasswordRouter);
 app.use("/api/v1/result", resultRouter);
 app.use("/api/v1/admitcard", admitCardRouter);
