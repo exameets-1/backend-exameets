@@ -26,7 +26,7 @@ const app = express()
 app.get("/", (req, res) => {
   res.json({ message: "Backend is running" });
 });
-
+ 
 
 // Apply CORS to all routes
 app.use(cors({
