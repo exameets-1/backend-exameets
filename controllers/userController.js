@@ -60,7 +60,7 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
     res.status(200).cookie("token", "", {
-      expires: new Date(Date.now()),
+      expires: new Date(0), // Jan 1, 1970
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
