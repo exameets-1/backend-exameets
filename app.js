@@ -24,7 +24,7 @@ import phoneVerificationRoutes from './routes/phoneVerificationRouter.js';
 const app = express()
 // In your app.js, add this before your other routes
 app.get("/", (req, res) => {
-  res.json({ message: "Backend is running" });
+  res.json(process.env.NODE_ENV);
 });
  
 
@@ -34,6 +34,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
+
 
 // Handle preflight requests
 
