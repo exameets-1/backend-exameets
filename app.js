@@ -24,7 +24,11 @@ import phoneVerificationRoutes from './routes/phoneVerificationRouter.js';
 const app = express()
 // In your app.js, add this before your other routes
 app.get("/", (req, res) => {
-  res.json(process.env.NODE_ENV);
+  res.json({
+    NODE_ENV: process.env.NODE_ENV,
+    FRONTEND_URL: process.env.FRONTEND_URL
+  });
+
 });
  
 
