@@ -13,6 +13,7 @@ export const sendToken = (user,statusCode, res, message) => {
         path: '/',
 
     };
+    console.log('cookie options :', options);
     
     res.status(statusCode)
        .cookie("token", token, options)
