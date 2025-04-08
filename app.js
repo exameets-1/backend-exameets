@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
 // Apply CORS to all routes
 app.use(cors({
   origin: [process.env.FRONTEND_URL],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
   credentials: true
 }));
 

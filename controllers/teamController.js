@@ -8,14 +8,15 @@ export const createTeam = catchAsyncErrors(async (req, res, next) => {
             name,
             position,
             image,
-            description, // Add description
-            strengths,   // Add strengths
-            duration,    // Add duration
-            linkedin,    // Add linkedin
-            github,      // Add github
-            certificates // Add certificates
+            description,
+            strengths,
+            duration,
+            linkedin,
+            github,
+            certificates
         } = req.body;
 
+        // Create team with approved set to false by default (comes from schema)
         const team = await Team.create({
             name,
             position,
@@ -25,7 +26,8 @@ export const createTeam = catchAsyncErrors(async (req, res, next) => {
             duration,
             linkedin,
             github,
-            certificates
+            certificates,
+            approved: false
         });
 
         res.status(200).json({
@@ -38,37 +40,45 @@ export const createTeam = catchAsyncErrors(async (req, res, next) => {
     }
 });
 
-export const getAllTeams = catchAsyncErrors(async(req, res , next) => {
-    try{
+export const getAllTeams = catchAsyncErrors(async(req, res, next) => {
+    try {
         const page = parseInt(req.query.page) || 1;
         const limit = 100;
-        const skip = (page -1) * limit;
+        const skip = (page - 1) * limit;
 
-        let query = {};
+        let query = { approved: true }; // Default to show only approved teams
 
-        if(req.query.keyword){
+        // If explicitly requesting pending teams
+        if (req.query.status === 'pending') {
+            query = { approved: false };
+        } else if (req.query.status === 'all') {
+            delete query.approved; // Remove the filter to get all teams
+        }
+
+        if (req.query.keyword) {
             query.$or = [
-                {name : {$regex: req.query.keyword, $options: 'i'}}
+                {name: {$regex: req.query.keyword, $options: 'i'}}
             ];
         }
+
         const totalTeams = await Team.countDocuments(query);
         const teams = await Team.find(query)
-        .skip(skip)
-        .limit(limit)
+            .skip(skip)
+            .limit(limit);
 
         const totalPages = Math.ceil(totalTeams/limit);
         res.status(200).json({
-            success : true,
+            success: true,
             teams,
-            currentPage : page,
+            currentPage: page,
             totalPages,
             totalTeams,
             message: 'Teams fetched successfully'
-        })
-    } catch(error){
+        });
+    } catch(error) {
         return next(new ErrorHandler(error.message, 500));
     }
-})
+});
 
 export const getASingleTeam = catchAsyncErrors(async(req, res, next)=>{
     const {id} = req.params;
@@ -78,10 +88,32 @@ export const getASingleTeam = catchAsyncErrors(async(req, res, next)=>{
     }
 
     res.status(200).json({
-        success :true,
+        success: true,
         team,
-    })
-})
+    });
+});
+
+export const approveTeam = catchAsyncErrors(async(req, res, next) => {
+    try {
+        const { id } = req.params;
+        const team = await Team.findById(id);
+        
+        if (!team) {
+            return next(new ErrorHandler("Team Not Found", 404));
+        }
+        
+        team.approved = true;
+        await team.save();
+        
+        res.status(200).json({
+            success: true,
+            message: "Team member approved successfully",
+            team
+        });
+    } catch (error) {
+        return next(new ErrorHandler(error.message, 500));
+    }
+});
 
 export const deleteTeam = catchAsyncErrors(async(req, res, next)=>{
     const {id} = req.params;
@@ -92,7 +124,7 @@ export const deleteTeam = catchAsyncErrors(async(req, res, next)=>{
 
     await team.deleteOne();
     res.status(200).json({
-        success : true,
+        success: true,
         message: "Team deleted successfully"
-    })
-})
+    });
+});
