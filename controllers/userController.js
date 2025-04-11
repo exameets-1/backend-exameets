@@ -59,42 +59,17 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
-    console.log("Logout called, setting cookies to expire");
-    // Clear with both domain variations
-    res.cookie("token", "", {
-      expires: new Date(0),
+    res.status(200).cookie("token", "", {
+      expires: new Date(Date.now()),
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/',
-      domain: '.admin.exameets.in' // Match the subdomain exactly
-    });
-    
-    // Also clear with the root domain
-    res.cookie("token", "", {
-      expires: new Date(0),
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/',
-      domain: '.exameets.in'
-    });
-    
-    // And finally a version with no domain specification
-    res.cookie("token", "", {
-      expires: new Date(0),
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/'
-    });
-    console.log("Response headers:", res.getHeaders()); // Log headers before sending
-    return res.status(200).json({
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    }).json({
       success: true,
       message: "Logged out successfully",
     });
   });
-  
 
 export const getMyProfile = catchAsyncErrors(async (req, res, next) => {
     
