@@ -12,11 +12,11 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://frontend-exameets.vercel.app"
+          "value": "https://admin.exameets.in/"
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
+          "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
         },
         {
           "key": "Access-Control-Allow-Headers",
