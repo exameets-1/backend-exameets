@@ -1,14 +1,14 @@
 export const sendToken = (user, statusCode, res, message) => {
-    const token = user.getJWTToken();
-    const options = {
+  const token = user.getJWTToken();
+  const options = {
     expires: new Date(
-      Date.now() + (process.env.COOKIE_EXPIRE || 1) * 24 * 60 * 60 * 1000 // Shorter default - 1 day
+      Date.now() + (process.env.COOKIE_EXPIRE || 1) * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    secure: true, // Always use secure in production
-    sameSite: 'none', // For cross-site requests between your subdomains
+    secure: true,
+    sameSite: 'none',
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.exameets.in' : undefined // Allows sharing between subdomains
+    domain: process.env.NODE_ENV === 'production' ? '.admin.exameets.in' : undefined
   };
   
   // Log for debugging, remove in production
