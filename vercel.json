@@ -12,7 +12,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://admin.exameets.in/"
+          "value": "https://admin.exameets.in"
         },
         {
           "key": "Access-Control-Allow-Methods",
