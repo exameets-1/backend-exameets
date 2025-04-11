@@ -59,22 +59,31 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
-    // Use the same cookie options as in sendToken for consistency
-    const options = {
-      expires: new Date(0), // Jan 1, 1970 - immediately expires the cookie
+    // Set multiple cookies to ensure all possible cookie variations are cleared
+    
+    // 1. Clear with the specific domain setting
+    res.cookie("token", "", {
+      expires: new Date(0),
       httpOnly: true,
-      secure: true, // Always use secure in production, matching sendToken
-      sameSite: 'none', // For cross-site requests between your subdomains
+      secure: true,
+      sameSite: 'none',
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? '.exameets.in' : undefined // Allows sharing between subdomains
-    };
-  
-    res.status(200)
-      .cookie("token", "", options)
-      .json({
-        success: true,
-        message: "Logged out successfully",
-      });
+      domain: '.exameets.in' // Remove conditional - directly set the domain
+    });
+    
+    // 2. Clear with no domain (for exact domain match)
+    res.cookie("token", "", {
+      expires: new Date(0),
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/'
+    });
+    
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
   });
   
 
