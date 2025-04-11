@@ -103,7 +103,7 @@ export const getMyProfile = catchAsyncErrors(async (req, res, next) => {
     }
 
     // Fetch fresh user data from database
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id); 
     if (!user) {
         return next(new ErrorHandler("User not found in database", 404));
     }
