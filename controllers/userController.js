@@ -59,17 +59,20 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
-    res.status(200).cookie("token", "", {
-      expires: new Date(Date.now()),
+    res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "strict", // or "None" if needed
       path: "/",
-    }).json({
+      domain: process.env.NODE_ENV === "production" ? ".exameets.in" : "localhost"
+    });
+  
+    res.status(200).json({
       success: true,
       message: "Logged out successfully",
     });
   });
+  
 
 export const getMyProfile = catchAsyncErrors(async (req, res, next) => {
     
@@ -82,7 +85,6 @@ export const getMyProfile = catchAsyncErrors(async (req, res, next) => {
     if (!user) {
         return next(new ErrorHandler("User not found in database", 404));
     }
-    
     res.status(200).json({
         success: true,
         user

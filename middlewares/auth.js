@@ -14,7 +14,7 @@ export const isAuthenticated = catchAsyncErrors(async(req, res, next) => {
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        req.user = await User.findById(decoded._id);
+        req.user = await User.findById(decoded.id);
         next();
     } catch (error) {
         return next(new ErrorHandler("Invalid or expired token", 401));

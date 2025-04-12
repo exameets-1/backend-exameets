@@ -5,7 +5,8 @@ export const sendToken = (user, statusCode, res, message) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/'
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? '.exameets.in' : 'localhost'
   };
   
   res.status(statusCode)
@@ -14,6 +15,5 @@ export const sendToken = (user, statusCode, res, message) => {
           success: true,
           user,
           message,
-          // Remove token from JSON response
      });
 };
