@@ -15,16 +15,16 @@ const router = express.Router();
 router.post("/create", isAuthenticated, createAdmission);
 
 // Get all admissions
-router.route("/getall").get(getAllAdmissions);
+router.get("/getall", getAllAdmissions);
 
 // Get single admission
-router.route("/get/:id").get(getSingleAdmission);
+router.get("/get/:id", getSingleAdmission);
 
 // Get latest admissions
-router.route("/latest").get(getLatestAdmissions);
+router.get("/latest", getLatestAdmissions);
 
 // Delete admission
-router.delete("/:id", isAuthenticated, deleteAdmission);
+router.delete("/delete/:id", isAuthenticated, deleteAdmission);
 
 // Update admission
 router.put("/update/:id", isAuthenticated, updateAdmission);

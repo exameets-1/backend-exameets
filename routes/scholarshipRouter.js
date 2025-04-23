@@ -16,16 +16,16 @@ const router = express.Router();
 router.post("/create", isAuthenticated, createScholarship);
 
 // Get all scholarships
-router.route("/getall").get(getAllScholarships);
+router.get("/getall", getAllScholarships);
 
 // Get single scholarship
-router.route("/get/:id").get(getASingleScholarship);
+router.get("/get/:id", getASingleScholarship);
 
 // Get latest scholarships
-router.route("/latest").get(getLatestScholarships);
+router.get("/latest", getLatestScholarships);
 
 // Delete scholarship
-router.delete("/:id", isAuthenticated, deleteScholarship);
+router.delete("/delete/:id", isAuthenticated, deleteScholarship);
 
 // Update scholarship
 router.put("/update/:id", isAuthenticated, updateScholarship);

@@ -118,7 +118,7 @@ export const getLatestInternships = catchAsyncErrors(async (req, res, next) => {
 
 export const deleteInternship = catchAsyncErrors(async (req, res, next) => {
     const { id } = req.params;
-    const internship = await Internship.findOne({ _id: id });
+    const internship = await Internship.findById(id);
 
     if (!internship) {
         return next(new ErrorHandler("Internship not found", 404));

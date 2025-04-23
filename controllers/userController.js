@@ -198,7 +198,8 @@ export const deleteAccount = catchAsyncErrors(async (req, res, next) => {
 
 export const checkEmailExists = catchAsyncErrors(async (req, res) => {
     const { email } = req.body;
-    const existingUser = await User.findOne({ email });
+    const lc_email = email.toLowerCase();
+    const existingUser = await User.findOne({ email: lc_email });
     
     res.status(200).json({
         success: true,

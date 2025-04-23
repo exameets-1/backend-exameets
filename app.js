@@ -43,7 +43,7 @@ app.use(cors({
 
 // Handle preflight requests
 app.options('*', cors({
-  origin: process.env.FRONTEND_URL,
+  origin: [process.env.FRONTEND_URL],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie']
 }));
