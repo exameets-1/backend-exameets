@@ -5,7 +5,8 @@ import {
     getLatestResults,
     deleteResult,
     updateResult,
-    createResult
+    createResult,
+    processResultDetails
 } from "../controllers/resultController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -17,5 +18,6 @@ router.get("/latest", getLatestResults);
 router.delete("/:id", isAuthenticated, deleteResult);
 router.put("/update/:id", isAuthenticated, updateResult);
 router.post("/create", isAuthenticated, createResult);
+router.post("/process", isAuthenticated, processResultDetails);
 
 export default router;

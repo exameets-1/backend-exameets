@@ -7,7 +7,8 @@ import {
     getLatestPapers,
     addPaper,
     updatePaper,
-    deletePaper
+    deletePaper,
+    processPreviousYearPaperDetails
 } from "../controllers/previousYearController.js";
 
 const router = express.Router();
@@ -32,6 +33,9 @@ router.put("/:paperId", isAuthenticated, updatePaper);
 
 // Delete a paper
 router.delete("/:paperId", isAuthenticated, deletePaper);
+
+// Process previous year paper details
+router.post("/process", isAuthenticated, processPreviousYearPaperDetails);
 
 
 export default router;

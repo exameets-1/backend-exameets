@@ -5,7 +5,8 @@ import {
     getLatestAdmitCards,
     deleteAdmitCard,
     updateAdmitCard,
-    createAdmitCard
+    createAdmitCard,
+    processAdmitCardDetails
 } from "../controllers/admitCardController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -18,5 +19,6 @@ router.get("/latest", getLatestAdmitCards);
 router.delete("/:id",  isAuthenticated, deleteAdmitCard);
 router.put("/update/:id", isAuthenticated, updateAdmitCard);
 router.post("/create", isAuthenticated, createAdmitCard);
+router.post("/process", isAuthenticated, processAdmitCardDetails);
 
 export default router;

@@ -1,6 +1,7 @@
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import ErrorHandler from "../middlewares/error.js";
 import { Job } from "../models/jobSchema.js";
+import fetch from 'node-fetch';
 
 export const getAllJobs = catchAsyncErrors(async (req, res, next) => {
   const { city, job_type, searchKeyword, page = 1, limit = 8 } = req.query;
@@ -210,3 +211,327 @@ export const getFeaturedJobs = catchAsyncErrors(async (req, res, next) => {
     jobs
   });
 });
+
+
+// export const processJobDetails = async (req, res) => {
+//   try {
+//     const { jobDetails } = req.body;
+//     const user = req.user._id;
+    
+//     if (!jobDetails) {
+//       return res.status(400).json({ success: false, message: 'Job details are required' });
+//     }
+
+//     // Prepare the prompt for OpenRouter AI
+//     const prompt = `
+//       Create a job posting JSON based on the following details. Follow this exact schema without using placeholder data:
+//       ${JSON.stringify(Job.schema.obj, null, 2)}
+      
+//       Job Details:
+//       ${jobDetails}
+      
+//       Generate a complete JSON without any placeholder values. Use empty strings where necessary if information is not provided.
+//       Make sure to generate a unique slug by combining the job title, company name with today's date. Make sure the slug is URL-friendly.
+//       Ensure the JSON is valid and well-structured. Make sure the job details are professional as the website is in production
+//       Do not include any explanations, just return valid JSON. Exclude createdAt and updatedAt fields from the JSON.
+//     `;
+
+//     // Call OpenRouter AI API
+//     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+//         'HTTP-Referer': process.env.APP_URL || 'http://localhost:3000',
+//         'X-Title': 'Job Portal'
+//       },
+//       body: JSON.stringify({
+//         model: process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo', // Use default model if not specified
+//         messages: [
+//           { role: 'system', content: 'You are a helpful assistant that generates structured job posting data in JSON format.' },
+//           { role: 'user', content: prompt }
+//         ]
+//       })
+//     });
+
+//     if (!openRouterResponse.ok) {
+//       const errorData = await openRouterResponse.json();
+//       console.error('OpenRouter API error:', errorData);
+//       return res.status(500).json({ success: false, message: 'Failed to process with AI', error: errorData });
+//     }
+
+//     const aiResponse = await openRouterResponse.json();
+    
+//     // Extract the generated JSON from the AI response
+//     let jobData;
+//     try {
+//       const aiContent = aiResponse.choices[0].message.content;
+//       // Extract JSON from potential markdown or text format
+//       const jsonMatch = aiContent.match(/```json\n?([\s\S]*?)\n?```/) || aiContent.match(/({[\s\S]*})/);
+//       const jsonString = jsonMatch ? jsonMatch[1] : aiContent;
+//       jobData = JSON.parse(jsonString.trim());
+//     } catch (error) {
+//       console.error('Error parsing AI response:', error);
+//       return res.status(500).json({ 
+//         success: false, 
+//         message: 'Failed to parse AI response', 
+//         aiResponse,
+//         error: error.message 
+//       });
+//     }
+    
+//     // Generate a slug if it's missing
+//     if (!jobData.slug) {
+//       const date = new Date();
+//       const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+//       jobData.slug = `${jobData.title.toLowerCase().replace(/\s+/g, '-')}-${formattedDate}`;
+//     }
+
+//     // Create and save the job in the database
+//     const job = new Job(jobData); //add postedBy field from req.user
+//     job.postedBy = user; // Ensure the job is associated with the user
+//     job.createdAt = new Date(); // Set createdAt to now
+//     console.log('Job data to be saved:', job);
+//     await job.save();
+
+//     res.status(201).json({
+//       success: true,
+//       message: 'Job processed and saved successfully',
+//       job
+//     });
+//   } catch (error) {
+//     console.error('Error in job processing:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to process and save job',
+//       error: error.message
+//     });
+//   }
+// };
+
+export const processJobDetails = async (req, res) => {
+  try {
+    const { jobDetails } = req.body;
+    const user = req.user._id;
+    
+    if (!jobDetails) {
+      return res.status(400).json({ success: false, message: 'Job details are required' });
+    }
+
+    // Step 1: Initial AI generation
+    const initialPrompt = `
+      Create a job posting JSON based on the following details. Follow this exact schema:
+      ${JSON.stringify(Job.schema.obj, null, 2)}
+      
+      Job Details:
+      ${jobDetails}
+      
+      Generate a complete JSON without any placeholder values. Use empty strings for missing information.
+      Make sure to generate a unique slug by combining the job title, company name with today's date.
+      Ensure the slug is URL-friendly (lowercase, hyphens instead of spaces).
+      Do not include createdAt, updatedAt, or postedBy fields.
+      Return only valid JSON without explanations.
+    `;
+
+    const initialResponse = await callOpenRouterAI(initialPrompt, 'Generate initial job posting JSON');
+    
+    if (!initialResponse.success) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to generate initial job data', 
+        error: initialResponse.error 
+      });
+    }
+
+    // Step 2: Validation and correction
+    const validationPrompt = `
+      You are a strict JSON validator. Analyze the following JSON against the schema requirements and fix any issues:
+
+      SCHEMA REQUIREMENTS:
+      - category: Must be exactly 'IT' or 'NON-IT'
+      - positionType: Must be exactly 'Full-Time', 'Part-Time', or 'Contract'  
+      - submissionMethod: Must be exactly 'email' or 'portal'
+      - If submissionMethod is 'email', contactEmail is required
+      - If submissionMethod is 'portal', applicationPortalLink is required
+      - keyResponsibilities: Must be an array with at least 1 item
+      - All array fields should be arrays, not strings
+      - All string fields should be strings, not arrays
+      - Remove any fields not in the schema
+      - Ensure slug is URL-friendly (lowercase, hyphens, no spaces)
+
+      JSON TO VALIDATE AND FIX:
+      ${JSON.stringify(initialResponse.data, null, 2)}
+
+      Return ONLY the corrected JSON. Fix all validation errors, ensure proper data types, and make sure all enum values are exact matches. If any required conditional fields are missing, add them with appropriate values.
+    `;
+
+    const validationResponse = await callOpenRouterAI(validationPrompt, 'Validate and correct JSON');
+    
+    if (!validationResponse.success) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to validate job data', 
+        error: validationResponse.error 
+      });
+    }
+
+    let jobData = validationResponse.data;
+
+    // Step 3: Final safety checks and manual corrections
+    jobData = applySafetyChecks(jobData);
+
+    // Step 4: Create and save the job
+    const job = new Job(jobData);
+    job.postedBy = user;
+    job.createdAt = new Date();
+    
+    // Validate before saving
+    try {
+      await job.validate();
+    } catch (validationError) {
+      console.error('Mongoose validation error:', validationError);
+      return res.status(400).json({
+        success: false,
+        message: 'Job data validation failed',
+        errors: validationError.errors
+      });
+    }
+
+    await job.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Job processed and saved successfully',
+      job
+    });
+
+  } catch (error) {
+    console.error('Error in job processing:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process and save job',
+      error: error.message
+    });
+  }
+};
+
+// Helper function to call OpenRouter AI
+async function callOpenRouterAI(prompt, context) {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': process.env.APP_URL || 'http://localhost:3000',
+        'X-Title': 'Job Portal'
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo',
+        messages: [
+          { 
+            role: 'system', 
+            content: `You are a precise JSON generator for job postings. Always return valid JSON without explanations. Context: ${context}` 
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.1 // Lower temperature for more consistent outputs
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData };
+    }
+
+    const aiResponse = await response.json();
+    
+    // Parse the JSON response
+    const aiContent = aiResponse.choices[0].message.content;
+    const jsonMatch = aiContent.match(/```json\n?([\s\S]*?)\n?```/) || aiContent.match(/({[\s\S]*})/);
+    const jsonString = jsonMatch ? jsonMatch[1] : aiContent;
+    
+    const parsedData = JSON.parse(jsonString.trim());
+    
+    return { success: true, data: parsedData };
+    
+  } catch (error) {
+    console.error('AI API call error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Apply final safety checks and corrections
+function applySafetyChecks(jobData) {
+  // Ensure required enums have valid values
+  if (!['IT', 'NON-IT'].includes(jobData.category)) {
+    jobData.category = 'IT'; // Default fallback
+  }
+  
+  if (!['Full-Time', 'Part-Time', 'Contract'].includes(jobData.positionType)) {
+    jobData.positionType = 'Full-Time'; // Default fallback
+  }
+  
+  if (!['email', 'portal'].includes(jobData.submissionMethod)) {
+    jobData.submissionMethod = 'email'; // Default fallback
+  }
+
+  // Ensure conditional requirements
+  if (jobData.submissionMethod === 'email' && !jobData.contactEmail) {
+    jobData.contactEmail = 'hr@company.com'; // Placeholder that should be updated
+  }
+  
+  if (jobData.submissionMethod === 'portal' && !jobData.applicationPortalLink) {
+    jobData.applicationPortalLink = 'https://company.com/careers'; // Placeholder
+  }
+
+  // Ensure keyResponsibilities is an array with at least one item
+  if (!Array.isArray(jobData.keyResponsibilities) || jobData.keyResponsibilities.length === 0) {
+    jobData.keyResponsibilities = ['Perform assigned duties and responsibilities'];
+  }
+
+  // Ensure all array fields are arrays
+  const arrayFields = ['keyResponsibilities', 'education', 'languages', 'frameworks', 'databases', 'methodologies', 'softSkills', 'preferredQualifications', 'benefits', 'keywords'];
+  arrayFields.forEach(field => {
+    if (jobData[field] && !Array.isArray(jobData[field])) {
+      if (typeof jobData[field] === 'string') {
+        jobData[field] = jobData[field].split(',').map(item => item.trim()).filter(item => item);
+      } else {
+        jobData[field] = [];
+      }
+    }
+    if (!jobData[field]) {
+      jobData[field] = [];
+    }
+  });
+
+  // Ensure slug is URL-friendly
+  if (jobData.slug) {
+    jobData.slug = jobData.slug.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  }
+
+  // Generate slug if missing
+  if (!jobData.slug && jobData.jobTitle) {
+    const date = new Date();
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+    const companySlug = jobData.companyName ? jobData.companyName.toLowerCase().replace(/\s+/g, '-') : 'company';
+    jobData.slug = `${jobData.jobTitle.toLowerCase().replace(/\s+/g, '-')}-${companySlug}-${formattedDate}`;
+  }
+
+  // Remove any undefined or null values
+  Object.keys(jobData).forEach(key => {
+    if (jobData[key] === undefined || jobData[key] === null) {
+      if (arrayFields.includes(key)) {
+        jobData[key] = [];
+      } else {
+        jobData[key] = '';
+      }
+    }
+  });
+
+  return jobData;
+}

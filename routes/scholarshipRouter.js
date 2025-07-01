@@ -6,7 +6,8 @@ import {
     getLatestScholarships,
     deleteScholarship,
     updateScholarship,
-    createScholarship
+    createScholarship,
+    processScholarshipDetails
 } from "../controllers/scholarshipController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -29,5 +30,8 @@ router.delete("/delete/:id", isAuthenticated, deleteScholarship);
 
 // Update scholarship
 router.put("/update/:id", isAuthenticated, updateScholarship);
+
+// Process scholarship details
+router.post("/process", isAuthenticated, processScholarshipDetails);
 
 export default router;

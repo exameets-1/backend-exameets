@@ -6,7 +6,8 @@ import {
     getLatestAdmissions,
     deleteAdmission,
     updateAdmission,
-    createAdmission
+    createAdmission,
+    processAdmissionDetails
 } from "../controllers/admissionController.js";
 
 const router = express.Router();
@@ -28,5 +29,7 @@ router.delete("/delete/:id", isAuthenticated, deleteAdmission);
 
 // Update admission
 router.put("/update/:id", isAuthenticated, updateAdmission);
+// Process admission details
+router.post("/process", isAuthenticated, processAdmissionDetails);
 
 export default router;

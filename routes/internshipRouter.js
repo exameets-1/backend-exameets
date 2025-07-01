@@ -6,7 +6,8 @@ import {
     getLatestInternships,
     deleteInternship,
     updateInternship,
-    createInternship
+    createInternship,
+    processInternshipDetails
 } from "../controllers/internshipController.js";
 
 const router = express.Router();
@@ -28,5 +29,7 @@ router.delete("/delete/:id", isAuthenticated, deleteInternship);
 
 // Update Internship
 router.put("/update/:id", isAuthenticated, updateInternship);
+
+router.post("/process", isAuthenticated, processInternshipDetails);
 
 export default router;

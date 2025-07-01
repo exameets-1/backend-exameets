@@ -5,7 +5,8 @@ import {
     getLatestGovtJobs,
     deleteGovtJob,
     updateGovtJob,
-    createGovtJob
+    createGovtJob,
+    processGovtJobDetails
 } from "../controllers/govtJobController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get("/latest", getLatestGovtJobs);
 router.delete("/:id", isAuthenticated, deleteGovtJob);
 router.put("/update/:id", isAuthenticated, updateGovtJob);
 router.post("/create", isAuthenticated, createGovtJob);
+router.post("/process", isAuthenticated, processGovtJobDetails);
 
 export default router;

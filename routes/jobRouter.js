@@ -7,7 +7,8 @@ import {
     updateJob,
     createJob,
     getAllITJobs,
-    getAllNonITJobs
+    getAllNonITJobs,
+    processJobDetails
 } from "../controllers/jobController.js";   
 import { isAuthenticated } from "../middlewares/auth.js";
 const router = express.Router();
@@ -20,5 +21,6 @@ router.put("/:id", isAuthenticated, updateJob);
 router.post("/create", isAuthenticated, createJob);
 router.get("/getall/it", getAllITJobs);
 router.get("/getall/non-it", getAllNonITJobs);
+router.post("/process", isAuthenticated, processJobDetails);
 
 export default router;
