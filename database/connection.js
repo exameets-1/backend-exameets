@@ -4,7 +4,7 @@ export const connection = () => {
     const options = {
         dbName: "Job_Portal",
         serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000
+        socketTimeoutMS: 45000 // Adjust as needed
     };
 
     mongoose.connect(process.env.MONGO_URI, options)
