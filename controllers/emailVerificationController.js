@@ -1,12 +1,4 @@
-import { sendEmail } from "../utils/sendEmail.js";
-import crypto from "crypto";
-
-// Store OTPs with expiry (in memory - consider using Redis in production)
-const otpStore = new Map();
-
-const generateOTP = () => {
-    return crypto.randomInt(100000, 999999).toString();
-};
+import { sendOTPService, verifyOTPService } from "../services/otpService.js";
 
 export const sendEmailOTP = async (req, res) => {
     try {
@@ -19,28 +11,20 @@ export const sendEmailOTP = async (req, res) => {
             });
         }
 
-        // Generate OTP
-        const otp = generateOTP();
-        
-        // Store OTP with 5 minutes expiry
-        otpStore.set(email, {
-            otp,
-            expiry: Date.now() + 5 * 60 * 1000 // 5 minutes
-        });
+        // Use the new OTP service
+        const result = await sendOTPService(email, 'email_verification');
 
-        // Send OTP via email
-        const message = `Your OTP for email verification is: ${otp}. This OTP will expire in 5 minutes.`;
-        
-        await sendEmail({
-            email,
-            subject: "Email Verification OTP",
-            message,
-            type: 'signin'
-        });
+        if (!result.success) {
+            return res.status(400).json({
+                success: false,
+                message: result.message,
+                timeLeft: result.timeLeft
+            });
+        }
 
         res.status(200).json({
             success: true,
-            message: "OTP sent successfully"
+            message: result.message
         });
 
     } catch (error) {
@@ -63,44 +47,27 @@ export const verifyEmailOTP = async (req, res) => {
             });
         }
 
-        const storedData = otpStore.get(email);
-        
-        if (!storedData) {
+        // Use the new OTP verification service
+        const result = await verifyOTPService(email, otp, 'email_verification');
+
+        if (!result.success) {
             return res.status(400).json({
                 success: false,
-                message: "OTP has expired or not sent. Please request a new OTP"
+                message: result.message
             });
         }
-
-        if (Date.now() > storedData.expiry) {
-            otpStore.delete(email);
-            return res.status(400).json({
-                success: false,
-                message: "OTP has expired. Please request a new OTP"
-            });
-        }
-
-        if (storedData.otp !== otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid OTP"
-            });
-        }
-
-        // Clear OTP after successful verification
-        otpStore.delete(email);
 
         res.status(200).json({
             success: true,
-            message: "Email verified successfully"
+            message: result.message
         });
 
     } catch (error) {
         console.error("Email Verification Error:", error);
-        return res.status(400).json({
+        return res.status(500).json({
             success: false,
-            message: "Invalid OTP", // Consistent key
-            errorCode: "INVALID_OTP" // Add error codes
+            message: "Failed to verify OTP",
+            errorCode: "VERIFICATION_ERROR"
         });
     }
 };

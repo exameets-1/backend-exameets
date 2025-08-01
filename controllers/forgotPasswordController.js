@@ -1,11 +1,5 @@
 import { User } from "../models/userSchema.js";
-import { sendEmail } from "../utils/sendEmail.js";
-
-
-// Generate OTP
-const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
+import { sendOTPService, verifyOTPService } from "../services/otpService.js";
 
 // Send Password Reset OTP
 export const sendPasswordResetOTP = async (req, res) => {
@@ -20,31 +14,26 @@ export const sendPasswordResetOTP = async (req, res) => {
             });
         }
 
-        // Generate OTP
-        const otp = generateOTP();
-        
-        // Save OTP and its expiry in user document
-        user.resetPasswordOTP = otp;
-        user.resetPasswordOTPExpiry = Date.now() + 5 * 60 * 1000; // 10 minutes
-        await user.save();
+        // Use the new OTP service for password reset
+        const result = await sendOTPService(email, 'password_reset');
 
-        // Send email
-        const message = `Your OTP for password reset is: ${otp}. This OTP will expire in 5 minutes.`;
-        await sendEmail({
-            email: user.email,
-            subject: "Password Reset OTP",
-            message,
-            type: 'login'
-        });
+        if (!result.success) {
+            return res.status(400).json({
+                success: false,
+                message: result.message,
+                timeLeft: result.timeLeft
+            });
+        }
 
         res.status(200).json({
             success: true,
             message: "Password reset OTP sent to your email"
         });
     } catch (error) {
+        console.error("Password reset OTP error:", error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to send password reset OTP"
         });
     }
 };
@@ -53,27 +42,35 @@ export const sendPasswordResetOTP = async (req, res) => {
 export const verifyOTP = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const user = await User.findOne({
-            email,
-            resetPasswordOTP: otp,
-            resetPasswordOTPExpiry: { $gt: Date.now() }
-        });
 
+        // Check if user exists
+        const user = await User.findOne({ email });
         if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Email is not registered"
+            });
+        }
+
+        // Use the new OTP verification service (don't delete OTP yet)
+        const result = await verifyOTPService(email, otp, 'password_reset', false);
+
+        if (!result.success) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid or expired OTP"
+                message: result.message
             });
         }
 
         res.status(200).json({
             success: true,
-            message: "OTP verified successfully"
+            message: result.message
         });
     } catch (error) {
+        console.error("OTP verification error:", error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to verify OTP"
         });
     }
 };
@@ -81,23 +78,27 @@ export const verifyOTP = async (req, res) => {
 // Reset Password
 export const resetPassword = async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
-        const user = await User.findOne({
-            email,
-            resetPasswordOTP: otp,
-            resetPasswordOTPExpiry: { $gt: Date.now() }
-        });
+        const { email, newPassword } = req.body; // Remove otp from destructuring
 
+        // Check if user exists
+        const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({
+            return res.status(404).json({
                 success: false,
-                message: "Invalid or expired OTP"
+                message: "Email is not registered"
             });
         }
 
+        // No need to verify OTP again since it was already verified in the previous step
+        // Update password directly
         user.password = newPassword;
-        user.resetPasswordOTP = null;
-        user.resetPasswordOTPExpiry = null;
+        
+        // Clean up any old reset fields if they exist
+        if (user.resetPasswordOTP) {
+            user.resetPasswordOTP = undefined;
+            user.resetPasswordOTPExpiry = undefined;
+        }
+        
         await user.save();
 
         res.status(200).json({
@@ -105,9 +106,10 @@ export const resetPassword = async (req, res) => {
             message: "Password reset successful"
         });
     } catch (error) {
+        console.error("Password reset error:", error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Failed to reset password"
         });
     }
 };
