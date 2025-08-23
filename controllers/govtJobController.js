@@ -25,8 +25,12 @@ export const getAllGovtJobs = catchAsyncErrors(async (req, res, next) => {
         ];
     }
 
-    // Sorting logic
+    // Sorting logic 
     let sortOptions = {};
+
+    //By default sort by createdAt : -1
+    sortOptions.createdAt = -1;
+
     if (sort === 'recent') {
         sortOptions.notificationReleaseDate = -1; // Recent first
     } else if (sort === 'deadline') {
