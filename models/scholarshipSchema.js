@@ -47,7 +47,7 @@ const scholarshipSchema = new mongoose.Schema({
             'Class 10',
             'Class 11',
             'Class 12',
-            'Graduation',
+            'Under Graduation',
             'Post Graduation',
             'Post Graduation Diploma',
             'Phd',
