@@ -8,6 +8,9 @@ const jobPostingSchema = new mongoose.Schema({
         type: String,
         enum: ['IT', 'NON-IT'],
     },
+    imageUrl : {
+        type: String,
+    },
     city: {
         type: String,
     },
