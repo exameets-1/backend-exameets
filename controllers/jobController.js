@@ -139,20 +139,20 @@ export const updateJob = catchAsyncErrors(async (req, res, next) => {
 
 export const createJob = catchAsyncErrors(async (req, res, next) => {
   // Validate conditional submission requirements
-  if (req.body.submissionMethod === 'email' && !req.body.contactEmail) {
-    return next(new ErrorHandler('Contact email is required for email submissions', 400));
-  }
-  if (req.body.submissionMethod === 'portal' && !req.body.applicationPortalLink) {
-    return next(new ErrorHandler('Application portal link is required for portal submissions', 400));
-  }
+  // if (req.body.submissionMethod === 'email' && !req.body.contactEmail) {
+  //   return next(new ErrorHandler('Contact email is required for email submissions', 400));
+  // }
+  // if (req.body.submissionMethod === 'portal' && !req.body.applicationPortalLink) {
+  //   return next(new ErrorHandler('Application portal link is required for portal submissions', 400));
+  // }
 
-  if (req.body.keywords && !Array.isArray(req.body.keywords)) {
-    return next(new ErrorHandler('Keywords must be an array', 400));
-  }
+  // if (req.body.keywords && !Array.isArray(req.body.keywords)) {
+  //   return next(new ErrorHandler('Keywords must be an array', 400));
+  // }
 
-  if (req.body.searchDescription && req.body.searchDescription.length > 160) {
-    return next(new ErrorHandler('Search description must be less than 160 characters', 400));
-  }
+  // if (req.body.searchDescription && req.body.searchDescription.length > 160) {
+  //   return next(new ErrorHandler('Search description must be less than 160 characters', 400));
+  // }
 
   // Prepare job data with defaults
   const jobData = {

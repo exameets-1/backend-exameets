@@ -7,6 +7,7 @@ const jobPostingSchema = new mongoose.Schema({
     category: {
         type: String,
         enum: ['IT', 'NON-IT'],
+        default: 'IT'
     },
     imageUrl : {
         type: String,
@@ -23,6 +24,7 @@ const jobPostingSchema = new mongoose.Schema({
     positionType: {
         type: String,
         enum: ['Full-Time', 'Part-Time', 'Contract'],
+        default: 'Full-Time'
     },
     companyName: {
         type: String,
@@ -35,7 +37,6 @@ const jobPostingSchema = new mongoose.Schema({
     },
     keyResponsibilities: {
         type: [String],
-        validate: [(arr) => arr.length >= 1, '{PATH} must have at least 1 item'],
     },
     education: {
         type: [String],
