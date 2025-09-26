@@ -91,44 +91,168 @@ export const deleteJob = catchAsyncErrors(async (req, res, next) => {
 
 export const updateJob = catchAsyncErrors(async (req, res, next) => {
   const jobId = req.params.id;
-  const updates = req.body;
+  const { removedFields, ...updates } = req.body;
 
-  // Get allowed updates from schema paths (dynamic and maintainable)
-  const schemaPaths = Object.keys(Job.schema.paths);
-  const immutableFields = ['_id', 'createdAt'];
-  const allowedUpdates = schemaPaths.filter(
-    path => !immutableFields.includes(path)
-  );
+  // console.log('Received removedFields:', removedFields);
+  // console.log('Update data keys:', Object.keys(updates));
 
-  // Filter valid updates
-  const validUpdates = Object.keys(updates).filter(key => 
-    allowedUpdates.includes(key)
-  );
-
-  if (validUpdates.length === 0) {
-    return next(new ErrorHandler('No valid fields to update', 400));
+  const job = await Job.findById(jobId);
+  if (!job) {
+    return next(new ErrorHandler('Job not found', 404));
   }
 
-  // Create update object
-  const updateObject = {};
-  validUpdates.forEach(key => {
-    updateObject[key] = updates[key];
+  // Prepare fields to unset (completely remove from document)
+  const fieldsToUnset = {};
+  const fieldsToRemove = new Set(); // Track which fields should be removed
+  
+  if (removedFields && Array.isArray(removedFields)) {
+    removedFields.forEach(field => {
+      // console.log('Preparing to unset field:', field);
+      
+      switch (field) {
+        // Direct field removal
+        case 'imageUrl':
+        case 'companyName':
+        case 'companyOverview':
+        case 'positionSummary':
+        case 'experience':
+        case 'jobReferenceNumber':
+        case 'equalOpportunityStatement':
+        case 'slug':
+        case 'searchDescription':
+        case 'contactEmail':
+        case 'applicationPortalLink':
+        case 'startDate':
+        case 'applicationDeadline':
+        case 'keyResponsibilities':
+        case 'education':
+        case 'languages':
+        case 'frameworks':
+        case 'databases':
+        case 'methodologies':
+        case 'softSkills':
+        case 'preferredQualifications':
+        case 'benefits':
+        case 'keywords':
+        case 'faq':
+          fieldsToUnset[field] = "";
+          fieldsToRemove.add(field); // Track this field as being removed
+          // console.log(`Will unset ${field}`);
+          break;
+        
+        // Location group - unset all location fields
+        case 'location':
+          fieldsToUnset.city = "";
+          fieldsToUnset.state = "";
+          fieldsToUnset.country = "";
+          fieldsToRemove.add('city');
+          fieldsToRemove.add('state');
+          fieldsToRemove.add('country');
+          // console.log('Will unset location fields');
+          break;
+          
+        // Technical skills group - unset all technical skill arrays
+        case 'technicalSkills':
+          fieldsToUnset.languages = "";
+          fieldsToUnset.frameworks = "";
+          fieldsToUnset.databases = "";
+          fieldsToUnset.methodologies = "";
+          fieldsToRemove.add('languages');
+          fieldsToRemove.add('frameworks');
+          fieldsToRemove.add('databases');
+          fieldsToRemove.add('methodologies');
+          // console.log('Will unset all technical skills arrays');
+          break;
+          
+        // SEO fields group
+        case 'seoFields':
+          fieldsToUnset.keywords = "";
+          fieldsToUnset.searchDescription = "";
+          fieldsToRemove.add('keywords');
+          fieldsToRemove.add('searchDescription');
+          // console.log('Will unset SEO fields');
+          break;
+          
+        // Dates group
+        case 'dates':
+          fieldsToUnset.startDate = "";
+          fieldsToUnset.applicationDeadline = "";
+          fieldsToRemove.add('startDate');
+          fieldsToRemove.add('applicationDeadline');
+          // console.log('Will unset date fields');
+          break;
+          
+        // Application process group
+        case 'applicationProcess':
+          fieldsToUnset.submissionMethod = "";
+          fieldsToUnset.contactEmail = "";
+          fieldsToUnset.applicationPortalLink = "";
+          fieldsToRemove.add('submissionMethod');
+          fieldsToRemove.add('contactEmail');
+          fieldsToRemove.add('applicationPortalLink');
+          // console.log('Will unset application process fields');
+          break;
+          
+        // Featured option
+        case 'featured':
+          fieldsToUnset.isFeatured = "";
+          fieldsToRemove.add('isFeatured');
+          // console.log('Will unset isFeatured');
+          break;
+          
+        default:
+          // Handle direct field removal for any other fields
+          if (job.schema.paths[field]) {
+            fieldsToUnset[field] = "";
+            fieldsToRemove.add(field);
+            // console.log(`Will unset ${field}`);
+          }
+          break;
+      }
+    });
+  }
+
+  // Create update operations
+  const updateOperations = {};
+  
+  // Add fields to update (set operation) - EXCLUDE fields that are being removed
+  const filteredUpdates = {};
+  Object.keys(updates).forEach(key => {
+    if (updates[key] !== undefined && updates[key] !== null && key !== 'removedFields') {
+      // Only include this field in updates if it's NOT being removed
+      if (!fieldsToRemove.has(key)) {
+        filteredUpdates[key] = updates[key];
+      }
+    }
   });
 
-  // Handle update with proper validation
+  if (Object.keys(filteredUpdates).length > 0) {
+    updateOperations.$set = filteredUpdates;
+  }
+  
+  // Add fields to unset (remove completely)
+  if (Object.keys(fieldsToUnset).length > 0) {
+    updateOperations.$unset = fieldsToUnset;
+    // console.log('Fields to unset:', fieldsToUnset);
+  }
+
+  // console.log('Final update operations:', JSON.stringify(updateOperations, null, 2));
+
+  // Perform the update operation
   const updatedJob = await Job.findByIdAndUpdate(
     jobId,
-    updateObject,
+    updateOperations,
     { 
-      new: true,
-      runValidators: true, // Ensures schema validations run
-      context: 'query' // Needed for proper $set validation
+      new: true, // Return updated document
+      runValidators: false // Disable validators since we might be removing required fields
     }
   );
 
   if (!updatedJob) {
-    return next(new ErrorHandler('Job not found', 404));
+    return next(new ErrorHandler('Failed to update job', 500));
   }
+
+  // console.log('Job updated successfully. Removed fields no longer exist in document.');
 
   res.status(200).json({
     success: true,
