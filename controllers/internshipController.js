@@ -133,23 +133,112 @@ export const deleteInternship = catchAsyncErrors(async (req, res, next) => {
 });
 
 export const updateInternship = catchAsyncErrors(async (req, res, next) => {
-    const { id } = req.params;
-    const updates = req.body;
+    const internshipId = req.params.id;
+    const { removedFields, ...updates } = req.body;
 
-    const internship = await Internship.findOneAndUpdate(
-        { _id: id },
-        { $set: updates },
-        { new: true, runValidators: true }
+    // console.log('Received removedFields:', removedFields);
+    // console.log('Update data keys:', Object.keys(updates));
+
+    const internship = await Internship.findById(internshipId);
+    if (!internship) {
+        return next(new ErrorHandler('Internship not found', 404));
+    }
+
+    // Prepare fields to unset (completely remove from document)
+    const fieldsToUnset = {};
+    const fieldsToRemove = new Set(); // Track which fields should be removed
+    
+    if (removedFields && Array.isArray(removedFields)) {
+        removedFields.forEach(field => {
+            // console.log('Preparing to unset field:', field);
+            
+            switch (field) {
+                // Direct field removal - individual internship fields
+                case 'imageUrl':
+                case 'start_date':
+                case 'duration':
+                case 'stipend':
+                case 'location':
+                case 'qualification':
+                case 'application_link':
+                case 'last_date':
+                case 'field':
+                case 'description':
+                case 'slug':
+                case 'searchDescription':
+                case 'skills_required':
+                case 'eligibility_criteria':
+                case 'keywords':
+                    fieldsToUnset[field] = "";
+                    fieldsToRemove.add(field); // Track this field as being removed
+                    // console.log(`Will unset ${field}`);
+                    break;
+                
+                // Featured option
+                case 'is_featured':
+                    fieldsToUnset.is_featured = "";
+                    fieldsToRemove.add('is_featured');
+                    console.log('Will unset is_featured');
+                    break;
+                    
+                default:
+                    // Handle direct field removal for any other fields
+                    if (internship.schema.paths[field]) {
+                        fieldsToUnset[field] = "";
+                        fieldsToRemove.add(field);
+                        console.log(`Will unset ${field}`);
+                    }
+                    break;
+            }
+        });
+    }
+
+    // Create update operations
+    const updateOperations = {};
+    
+    // Add fields to update (set operation) - EXCLUDE fields that are being removed
+    const filteredUpdates = {};
+    Object.keys(updates).forEach(key => {
+        if (updates[key] !== undefined && updates[key] !== null && key !== 'removedFields') {
+            // Only include this field in updates if it's NOT being removed
+            if (!fieldsToRemove.has(key)) {
+                filteredUpdates[key] = updates[key];
+            }
+        }
+    });
+
+    if (Object.keys(filteredUpdates).length > 0) {
+        updateOperations.$set = filteredUpdates;
+    }
+    
+    // Add fields to unset (remove completely)
+    if (Object.keys(fieldsToUnset).length > 0) {
+        updateOperations.$unset = fieldsToUnset;
+        // console.log('Fields to unset:', fieldsToUnset);
+    }
+
+    // console.log('Final update operations:', JSON.stringify(updateOperations, null, 2));
+
+    // Perform the update operation
+    const updatedInternship = await Internship.findByIdAndUpdate(
+        internshipId,
+        updateOperations,
+        { 
+            new: true, // Return updated document
+            runValidators: false // Disable validators since we might be removing required fields
+        }
     );
 
-    if (!internship) {
-        return next(new ErrorHandler("Internship not found", 404));
+    if (!updatedInternship) {
+        return next(new ErrorHandler('Failed to update internship', 500));
     }
+
+    // console.log('Internship updated successfully. Removed fields no longer exist in document.');
 
     res.status(200).json({
         success: true,
-        internship,
-        message: "Internship updated successfully"
+        message: "Internship updated successfully",
+        internship: updatedInternship
     });
 });
 

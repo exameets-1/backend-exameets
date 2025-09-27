@@ -8,6 +8,9 @@ const intershShipSchema = new mongoose.Schema({
     title: {
         type: String,
     },
+    imageUrl : {
+        type: String,
+    },
     start_date: {
         type: String,
     },  
