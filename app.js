@@ -12,6 +12,7 @@ import internshipRouter from './routes/internshipRouter.js'
 import previousYearRouter from "./routes/previousYearRouter.js"
 import admissionRouter from "./routes/admissionRouter.js";
 import teamRouter from "./routes/teamRouter.js";
+import taskRouter from "./routes/taskRouter.js"
 import employeeRouter from "./routes/employeeRouter.js";
 import scholarshipRouter from "./routes/scholarshipRouter.js";
 import emailVerificationRoutes from './routes/emailVerification.js'
@@ -63,6 +64,7 @@ app.use("/api/v1/internship", internshipRouter);
 app.use("/api/v1/pyqs", previousYearRouter);
 app.use("/api/v1/admission", admissionRouter);
 app.use("/api/v1/team", teamRouter);
+app.use("/api/v1/task", taskRouter);
 app.use("/api/v1/emp", employeeRouter);
 app.use("/api/v1/scholarship", scholarshipRouter);
 app.use("/api/v1/email", emailVerificationRoutes);

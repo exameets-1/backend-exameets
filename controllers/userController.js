@@ -28,7 +28,8 @@ export const register = catchAsyncErrors(async (req, res, next) => {
             password,
             phone,
             dob,
-            gender
+            gender,
+            role : 'user' 
         });
 
         sendToken(user, 201, res, "Registered Successfully");
@@ -53,6 +54,11 @@ export const login = catchAsyncErrors(async (req, res, next) => {
     const isPasswordMatched = await user.comparePassword(password);
     if (!isPasswordMatched) {
         return next(new ErrorHandler("Invalid email or password", 401));
+    }
+
+    // ADDED: Check admin role before allowing login
+    if (user.role !== 'admin') {
+        return next(new ErrorHandler("Access denied. Admin privileges required", 403));
     }
 
     sendToken(user, 200, res, "Logged in successfully");
