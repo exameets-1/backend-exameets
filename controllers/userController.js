@@ -258,3 +258,12 @@ export const getMatchedJobs = catchAsyncErrors(async (req, res, next) => {
         })
     }
 });
+
+export const getAllAdmins = catchAsyncErrors(async (req, res, next) => {
+    //admins list in alphabetical order except req.user
+    const admins = await User.find({ role: 'admin', _id: { $ne: req.user.id } }).select('-password').sort({ name: 1 });
+    res.status(200).json({
+        success: true,
+        admins
+    });
+});

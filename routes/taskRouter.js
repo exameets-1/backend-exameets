@@ -1,46 +1,40 @@
 import express from 'express';
 import { 
-    getAllTasks,
     createTask,
     getSingleTask,
-    updateTask,
     deleteTask,
-    assignTask,
-    updateStatus,
     updateProgress,
     submitForReview,
     approveTask,
-    getTasksAssignedToMe,
-    getCreatedByMe,
+    requestChanges,
     addComment,
-    getComments,
-    deleteComment,
-    getActivityLogs,
-    getMyPendingTasks,
-    getMyCompletedTasks
+    getNotStartedTasks,
+    getInProgressTasks,
+    getCompletedTasks,
+    getTasksAssignedToMe,
+    getTasksAssignedToOthers
 } from '../controllers/taskController.js';
 import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get('/', getAllTasks);
+// ================== TASK CRUD ==================
 router.post('/create', isAuthenticated, createTask);
-router.get('/getall', isAuthenticated, getAllTasks);
 router.get('/get/:id', isAuthenticated, getSingleTask);
-router.put('/update/:id', isAuthenticated, updateTask);
-router.put('/assign/:id', isAuthenticated, assignTask);
 router.delete('/delete/:id', isAuthenticated, deleteTask);
-router.put('/update-status/:id', isAuthenticated, updateStatus);
+
+// ================== COLUMNS DATA ==================
+router.get('/not-started', isAuthenticated, getNotStartedTasks);
+router.get('/in-progress', isAuthenticated, getInProgressTasks);
+router.get('/completed', isAuthenticated, getCompletedTasks);
+router.get('/assigned-to-me', isAuthenticated, getTasksAssignedToMe);
+router.get('/assigned-to-others', isAuthenticated, getTasksAssignedToOthers);
+
+// ================== TASK ACTIONS ==================
 router.put('/update-progress/:id', isAuthenticated, updateProgress);
 router.put('/submit-for-review/:id', isAuthenticated, submitForReview);
-router.put('/approve-review/:id', isAuthenticated, approveTask);
-router.get('/my-assigned-tasks', isAuthenticated, getTasksAssignedToMe);
-router.get('/created-by-me', isAuthenticated, getCreatedByMe);
-router.get('/my-pending-tasks', isAuthenticated, getMyPendingTasks);
-router.get('/my-completed-tasks', isAuthenticated, getMyCompletedTasks);
+router.put('/approve/:id', isAuthenticated, approveTask);
+router.put('/request-changes/:id', isAuthenticated, requestChanges);
 router.post('/comment/:id', isAuthenticated, addComment);
-router.get('/get-comments/:id', isAuthenticated, getComments);
-router.delete('/delete-comment/:id/:commentId', isAuthenticated, deleteComment);
-router.get('/activity-logs/:id', isAuthenticated, getActivityLogs);
 
 export default router;
