@@ -13,6 +13,8 @@ import {
     getCompletedTasks,
     getTasksAssignedToMe,
     getTasksAssignedToOthers,
+    getUserTasks,
+    getTaskForViewing,
     getActivityLogs
 } from '../controllers/taskController.js';
 import { isAuthenticated } from "../middlewares/auth.js";
@@ -40,5 +42,9 @@ router.post('/comment/:id', isAuthenticated, addComment);
 
 // ================== ACTIVITY LOGS ==================
 router.get('/activity-logs/:id', isAuthenticated, getActivityLogs);
+
+// ================== USER TASKS ==================
+router.get('/view-user/:userId', isAuthenticated, getUserTasks);
+router.get('/view-task/:id', isAuthenticated, getTaskForViewing);
 
 export default router;

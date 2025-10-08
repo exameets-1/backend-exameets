@@ -485,3 +485,124 @@ export const getActivityLogs = catchAsyncErrors(async (req, res, next) => {
     activityLogs: task.activityLogs
   });
 });
+
+// ================== GET USER'S TASKS (VIEW ONLY FOR ADMINS) ==================
+
+// Get all tasks for a specific user (organized by columns)
+export const getUserTasks = catchAsyncErrors(async (req, res, next) => {
+  const { userId } = req.params;
+
+  // Verify the target user exists
+  const targetUser = await User.findById(userId).select("name email");
+  
+  if (!targetUser) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Fetch all tasks for this user (created by them or assigned to them)
+  const [notStarted, inProgress, completed, assignedToUser, assignedToOthers] = await Promise.all([
+    // Not Started Tasks
+    Task.find({
+      $or: [
+        { createdBy: userId },
+        { assignedTo: { $in: [userId] } }
+      ],
+      status: "not_started"
+    })
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("comments.user", "name email")
+      .sort({ createdAt: -1 }),
+
+    // In Progress Tasks
+    Task.find({
+      $or: [
+        { createdBy: userId },
+        { assignedTo: { $in: [userId] } }
+      ],
+      status: "in_progress"
+    })
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("comments.user", "name email")
+      .sort({ createdAt: -1 }),
+
+    // Completed Tasks
+    Task.find({
+      $or: [
+        { 
+          createdBy: userId,
+          $or: [
+            { assignedTo: { $exists: false } },
+            { assignedTo: { $size: 0 } }
+          ]
+        },
+        { assignedTo: { $in: [userId] } }
+      ],
+      status: "completed"
+    })
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("comments.user", "name email")
+      .sort({ completionDate: -1 }),
+
+    // Tasks Assigned to This User
+    Task.find({
+      assignedTo: { $in: [userId] },
+      createdBy: { $ne: userId }
+    })
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("comments.user", "name email")
+      .sort({ createdAt: -1 }),
+
+    // Tasks This User Assigned to Others
+    Task.find({
+      createdBy: userId,
+      assignedTo: { $exists: true, $ne: [] }
+    })
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("comments.user", "name email")
+      .sort({ createdAt: -1 })
+  ]);
+
+  res.status(200).json({
+    success: true,
+    user: targetUser,
+    tasks: {
+      notStarted,
+      inProgress,
+      completed,
+      assignedToUser,
+      assignedToOthers
+    },
+    counts: {
+      notStarted: notStarted.length,
+      inProgress: inProgress.length,
+      completed: completed.length,
+      assignedToUser: assignedToUser.length,
+      assignedToOthers: assignedToOthers.length,
+      total: notStarted.length + inProgress.length + completed.length + assignedToUser.length + assignedToOthers.length
+    }
+  });
+});
+
+// Get single task for viewing (read-only, no authorization check)
+export const getTaskForViewing = catchAsyncErrors(async (req, res, next) => {
+  const task = await Task.findById(req.params.id)
+    .populate("createdBy", "name email")
+    .populate("assignedTo", "name email")
+    .populate("comments.user", "name email")
+    .populate("activityLogs.byUser", "name email");
+
+  if (!task) {
+    return next(new ErrorHandler("Task not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    task,
+    viewOnly: true // Flag to indicate this is a read-only view
+  });
+});
