@@ -471,3 +471,17 @@ export const requestChanges = catchAsyncErrors(async (req, res, next) => {
     task
   });
 });
+
+// ================== 10. GET ACTIVITY LOGS ==================
+export const getActivityLogs = catchAsyncErrors(async (req, res, next) => {
+  const task = await Task.findById(req.params.id).populate("activityLogs.byUser", "name email");
+
+  if (!task) {
+    return next(new ErrorHandler("Task not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    activityLogs: task.activityLogs
+  });
+});

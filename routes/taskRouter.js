@@ -12,7 +12,8 @@ import {
     getInProgressTasks,
     getCompletedTasks,
     getTasksAssignedToMe,
-    getTasksAssignedToOthers
+    getTasksAssignedToOthers,
+    getActivityLogs
 } from '../controllers/taskController.js';
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -36,5 +37,8 @@ router.put('/submit-for-review/:id', isAuthenticated, submitForReview);
 router.put('/approve/:id', isAuthenticated, approveTask);
 router.put('/request-changes/:id', isAuthenticated, requestChanges);
 router.post('/comment/:id', isAuthenticated, addComment);
+
+// ================== ACTIVITY LOGS ==================
+router.get('/activity-logs/:id', isAuthenticated, getActivityLogs);
 
 export default router;
